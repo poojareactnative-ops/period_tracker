@@ -1,31 +1,31 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  KeyboardAvoidingView, 
-  Platform, 
-  TextInput, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  TextInput,
   TouchableOpacity,
   Alert,
-  ScrollView
+  ScrollView,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { Heart } from 'lucide-react-native';
 import { GradientBackground } from '../../components/GradientBackground';
 import { CustomButton } from '../../components/CustomButton';
+import { auth } from '../../services/firebase';
 import { colors } from '../../theme/colors';
 import { spacing, borderRadius, typography } from '../../theme/spacing';
-import { useNavigation } from '@react-navigation/native';
-import { useUserStore } from '../../store/useUserStore';
-import { Heart } from 'lucide-react-native';
 
 export const RegisterScreen: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  
+
   const navigation = useNavigation<any>();
-  const setUser = useUserStore(state => state.setUser);
 
   const handleRegister = async () => {
     if (!name || !email || !password) {
@@ -33,27 +33,52 @@ export const RegisterScreen: React.FC = () => {
       return;
     }
 
+    if (!email.includes('@')) {
+      Alert.alert('Error', 'Enter a valid email');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters');
+      return;
+    }
+
+    const normalizedName = name.trim();
+    const normalizedEmail = email.trim().toLowerCase();
+
     setLoading(true);
     try {
-      // Simulate Firebase Register
-      setTimeout(() => {
-        setUser({
-          uid: '123',
-          email: email,
-          displayName: name,
-          createdAt: new Date().toISOString(),
-        });
-        setLoading(false);
-      }, 1500);
+      const userCredential = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
+      await updateProfile(userCredential.user, {
+        displayName: normalizedName,
+      });
+      // AppNavigator swaps to main app when auth state updates.
     } catch (error: any) {
-      Alert.alert('Registration Failed', error.message);
+      let message = 'An error occurred during registration.';
+
+      if (error.code === 'auth/email-already-in-use') {
+        message = 'This email is already registered.';
+      } else if (error.code === 'auth/weak-password') {
+        message = 'Password should be at least 6 characters.';
+      } else if (error.code === 'auth/invalid-email') {
+        message = 'Invalid email address.';
+      } else if (error.code === 'auth/network-request-failed') {
+        message = 'Network error. Check your internet.';
+      } else if (error.code === 'auth/operation-not-allowed' || error.code === 'auth/configuration-not-found') {
+        message = 'Email/Password sign-up is not enabled in Firebase Console.';
+      } else if (error.code === 'auth/invalid-api-key') {
+        message = 'Firebase API key is invalid. Please verify firebase configuration.';
+      }
+
+      Alert.alert('Registration Failed', message);
+    } finally {
       setLoading(false);
     }
   };
 
   return (
     <GradientBackground variant="soft">
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}
       >
@@ -74,6 +99,7 @@ export const RegisterScreen: React.FC = () => {
                 placeholder="Jane Doe"
                 value={name}
                 onChangeText={setName}
+                autoCorrect={false}
               />
             </View>
 
@@ -86,6 +112,7 @@ export const RegisterScreen: React.FC = () => {
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                autoCorrect={false}
               />
             </View>
 
@@ -93,21 +120,24 @@ export const RegisterScreen: React.FC = () => {
               <Text style={styles.label}>Password</Text>
               <TextInput
                 style={styles.input}
-                placeholder="••••••••"
+                placeholder="********"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
               />
             </View>
 
             <View style={styles.privacyContainer}>
               <Text style={styles.privacyText}>
-                By signing up, you agree to our <Text style={styles.linkText}>Terms of Service</Text> and <Text style={styles.linkText}>Privacy Policy</Text>.
+                By signing up, you agree to our <Text style={styles.linkText}>Terms of Service</Text> and{' '}
+                <Text style={styles.linkText}>Privacy Policy</Text>.
               </Text>
             </View>
 
-            <CustomButton 
-              title="Create Account" 
+            <CustomButton
+              title="Create Account"
               onPress={handleRegister}
               loading={loading}
               style={styles.button}

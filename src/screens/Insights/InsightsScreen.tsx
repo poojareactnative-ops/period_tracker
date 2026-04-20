@@ -4,17 +4,26 @@ import { colors } from '../../theme/colors';
 import { spacing, borderRadius, typography } from '../../theme/spacing';
 import { GradientBackground } from '../../components/GradientBackground';
 import { BarChart2, TrendingUp, Calendar } from 'lucide-react-native';
+import { useCycleStore } from '../../store/useCycleStore';
+import { analyzeCyclePatterns, getHealthGuidance } from '../../utils/cycleLogic';
+import { HealthInsightCard } from '../../components/HealthInsightCard';
 
 const { width } = Dimensions.get('window');
 
-const CYCLE_DATA = [
-  { month: 'Jan', length: 28 },
-  { month: 'Feb', length: 30 },
-  { month: 'Mar', length: 27 },
-  { month: 'Apr', length: 28 },
-];
-
 export const InsightsScreen: React.FC = () => {
+  const { cycles, avgCycleLength, avgPeriodDuration } = useCycleStore();
+  const patterns = analyzeCyclePatterns(cycles);
+  const healthGuidance = getHealthGuidance(patterns);
+
+  // Map the last 5 cycles for the chart
+  const chartData = [...cycles]
+    .filter(c => c.length)
+    .slice(-5)
+    .map(c => ({
+      month: new Date(c.startDate).toLocaleDateString('en-US', { month: 'short' }),
+      length: c.length || 0
+    }));
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -22,16 +31,19 @@ export const InsightsScreen: React.FC = () => {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Pattern Analysis Guidance */}
+        <HealthInsightCard data={healthGuidance} />
+        
         {/* Stats Grid */}
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
             <TrendingUp color={colors.primary} size={24} />
-            <Text style={styles.statValue}>28 Days</Text>
+            <Text style={styles.statValue}>{avgCycleLength} Days</Text>
             <Text style={styles.statLabel}>Avg Cycle</Text>
           </View>
           <View style={styles.statCard}>
             <Calendar color={colors.secondary} size={24} />
-            <Text style={styles.statValue}>5 Days</Text>
+            <Text style={styles.statValue}>{avgPeriodDuration} Days</Text>
             <Text style={styles.statLabel}>Avg Period</Text>
           </View>
         </View>
@@ -41,14 +53,16 @@ export const InsightsScreen: React.FC = () => {
           <Text style={styles.sectionTitle}>Cycle Length Trend</Text>
           <View style={styles.chartContainer}>
             <View style={styles.chart}>
-              {CYCLE_DATA.map((data, index) => (
+              {chartData.length > 0 ? chartData.map((data, index) => (
                 <View key={index} style={styles.barContainer}>
-                  <View style={[styles.bar, { height: data.length * 4 }]}>
+                  <View style={[styles.bar, { height: Math.min(data.length * 4, 180) }]}>
                     <GradientBackground variant="pink" style={styles.barGradient} />
                   </View>
                   <Text style={styles.barLabel}>{data.month}</Text>
                 </View>
-              ))}
+              )) : (
+                <Text style={styles.emptyText}>Log more periods to see trends</Text>
+              )}
             </View>
             <View style={styles.chartYAxis}>
               <Text style={styles.axisLabel}>35</Text>

@@ -1,18 +1,25 @@
-import { initializeApp } from 'firebase/app';
+import { FirebaseOptions, getApp, getApps, initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
-// Replace with your Firebase configuration
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+const firebaseConfig: FirebaseOptions = {
+  apiKey: 'AIzaSyBpw8laS02ksvFak_hR7bIFGlhm97ZlYA4',
+  authDomain: 'periodtracker-39e63.firebaseapp.com',
+  projectId: 'periodtracker-39e63',
+  storageBucket: 'periodtracker-39e63.firebasestorage.app',
+  messagingSenderId: '1054162026875',
+  appId: '1:1054162026875:android:51729f06abac127f0abdde',
 };
 
-const app = initializeApp(firebaseConfig);
+const requiredConfig: (keyof FirebaseOptions)[] = ['apiKey', 'authDomain', 'projectId', 'appId'];
+const missingConfig = requiredConfig.filter((key) => !firebaseConfig[key]);
+
+if (missingConfig.length > 0) {
+  throw new Error(`Missing Firebase config keys: ${missingConfig.join(', ')}`);
+}
+
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 

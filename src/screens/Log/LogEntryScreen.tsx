@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
   TextInput,
   KeyboardAvoidingView,
   Platform,
@@ -15,7 +15,7 @@ import { spacing, borderRadius, typography } from '../../theme/spacing';
 import { CustomButton } from '../../components/CustomButton';
 import { useCycleStore } from '../../store/useCycleStore';
 import { useNavigation } from '@react-navigation/native';
-import { Smile, Meh, Frown, X, Check } from 'lucide-react-native';
+import { Smile, Meh, Frown, X, Check, Heart } from 'lucide-react-native';
 
 const MOODS = [
   { id: 'happy', icon: <Smile size={32} />, label: 'Happy' },
@@ -36,13 +36,29 @@ export const LogEntryScreen: React.FC = () => {
 
   const navigation = useNavigation();
   const addLog = useCycleStore(state => state.addLog);
+  const startPeriod = useCycleStore(state => state.startPeriod);
+  const endPeriod = useCycleStore(state => state.endPeriod);
+  const cycles = useCycleStore(state => state.cycles);
+
+  const activeCycle = cycles.find(c => !c.endDate);
 
   const toggleSymptom = (symptom: string) => {
-    setSelectedSymptoms(prev => 
-      prev.includes(symptom) 
-        ? prev.filter(s => s !== symptom) 
+    setSelectedSymptoms(prev =>
+      prev.includes(symptom)
+        ? prev.filter(s => s !== symptom)
         : [...prev, symptom]
     );
+  };
+
+  const handleTogglePeriod = () => {
+    const today = new Date().toISOString().split('T')[0];
+    if (activeCycle) {
+      endPeriod(today);
+      Alert.alert('Period Ended', 'We\'ve logged your period end date.');
+    } else {
+      startPeriod(today);
+      Alert.alert('Period Started', 'We\'ve logged your period start date.');
+    }
   };
 
   const handleSave = async () => {
@@ -55,7 +71,7 @@ export const LogEntryScreen: React.FC = () => {
         symptoms: selectedSymptoms,
         notes,
       });
-      
+
       Alert.alert('Success', 'Log saved successfully!');
       navigation.goBack();
     } catch (error) {
@@ -77,17 +93,43 @@ export const LogEntryScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
+          {/* Period Track Quick Action */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Track Period</Text>
+            <TouchableOpacity
+              style={[
+                styles.periodCard,
+                activeCycle && styles.activePeriodCard
+              ]}
+              onPress={handleTogglePeriod}
+            >
+              <View style={styles.periodCardContent}>
+                <View style={[styles.iconBoxCircle, activeCycle && styles.activeIconBoxCircle]}>
+                  <Heart color={activeCycle ? 'white' : colors.primary} size={24} fill={activeCycle ? 'white' : 'transparent'} />
+                </View>
+                <View>
+                  <Text style={[styles.periodCardTitle, activeCycle && styles.activePeriodCardText]}>
+                    {activeCycle ? 'Period in Progress' : 'Start Period Today'}
+                  </Text>
+                  <Text style={[styles.periodCardSubtitle, activeCycle && styles.activePeriodCardText]}>
+                    {activeCycle ? 'Tap to log period end' : 'Log your period start date'}
+                  </Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          </View>
+
           {/* Mood Selector */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>How's your mood?</Text>
             <View style={styles.moodGrid}>
               {MOODS.map(mood => (
-                <TouchableOpacity 
+                <TouchableOpacity
                   key={mood.id}
                   style={[
                     styles.moodItem,
@@ -95,8 +137,8 @@ export const LogEntryScreen: React.FC = () => {
                   ]}
                   onPress={() => setSelectedMood(mood.id)}
                 >
-                  {React.cloneElement(mood.icon, { 
-                    color: selectedMood === mood.id ? colors.primary : colors.text.light 
+                  {React.cloneElement(mood.icon, {
+                    color: selectedMood === mood.id ? colors.primary : colors.text.light
                   })}
                   <Text style={[
                     styles.moodLabel,
@@ -112,7 +154,7 @@ export const LogEntryScreen: React.FC = () => {
             <Text style={styles.sectionTitle}>Any symptoms?</Text>
             <View style={styles.chipContainer}>
               {SYMPTOMS.map(symptom => (
-                <TouchableOpacity 
+                <TouchableOpacity
                   key={symptom}
                   style={[
                     styles.chip,
@@ -143,9 +185,9 @@ export const LogEntryScreen: React.FC = () => {
             />
           </View>
 
-          <CustomButton 
-            title="Save Log" 
-            onPress={handleSave} 
+          <CustomButton
+            title="Save Log"
+            onPress={handleSave}
             loading={loading}
             style={styles.saveButton}
           />
@@ -183,6 +225,48 @@ const styles = StyleSheet.create({
     ...typography.h3,
     color: colors.text.primary,
     marginBottom: spacing.md,
+  },
+  periodCard: {
+    backgroundColor: colors.surface,
+    padding: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  activePeriodCard: {
+    backgroundColor: colors.period,
+    borderColor: colors.period,
+  },
+  periodCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconBoxCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  activeIconBoxCircle: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderColor: 'transparent',
+  },
+  periodCardTitle: {
+    ...typography.label,
+    color: colors.text.primary,
+    fontWeight: '700',
+  },
+  periodCardSubtitle: {
+    ...typography.caption,
+    color: colors.text.secondary,
+  },
+  activePeriodCardText: {
+    color: 'white',
   },
   moodGrid: {
     flexDirection: 'row',

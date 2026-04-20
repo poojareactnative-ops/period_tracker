@@ -1,29 +1,29 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  KeyboardAvoidingView, 
-  Platform, 
-  TextInput, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  TextInput,
   TouchableOpacity,
-  Alert
+  Alert,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { Heart } from 'lucide-react-native';
 import { GradientBackground } from '../../components/GradientBackground';
 import { CustomButton } from '../../components/CustomButton';
+import { auth } from '../../services/firebase';
 import { colors } from '../../theme/colors';
 import { spacing, borderRadius, typography } from '../../theme/spacing';
-import { useNavigation } from '@react-navigation/native';
-import { useUserStore } from '../../store/useUserStore';
-import { Heart } from 'lucide-react-native';
 
 export const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  
+
   const navigation = useNavigation<any>();
-  const setUser = useUserStore(state => state.setUser);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -31,28 +31,57 @@ export const LoginScreen: React.FC = () => {
       return;
     }
 
+    if (!email.includes('@')) {
+      Alert.alert('Error', 'Enter a valid email');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters');
+      return;
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
     setLoading(true);
     try {
-      // Simulate Firebase Login
-      setTimeout(() => {
-        setUser({
-          uid: '123',
-          email: email,
-          displayName: 'Jane Doe',
-          createdAt: new Date().toISOString(),
-        });
-        setLoading(false);
-      }, 1500);
+      await signInWithEmailAndPassword(auth, normalizedEmail, password);
+      // AppNavigator switches to the authenticated flow via onAuthStateChanged.
     } catch (error: any) {
-      Alert.alert('Login Failed', error.message);
+      console.log('login error:', error);
+
+      let message = 'An error occurred during sign in.';
+
+      if (error.code === 'auth/user-not-found') {
+        message = 'No account found with this email.';
+      } else if (error.code === 'auth/wrong-password') {
+        message = 'Incorrect password.';
+      } else if (error.code === 'auth/invalid-email') {
+        message = 'Invalid email address.';
+      } else if (error.code === 'auth/too-many-requests') {
+        message = 'Too many attempts. Try again later.';
+      } else if (error.code === 'auth/network-request-failed') {
+        message = 'Network error. Check your internet.';
+      } else if (error.code === 'auth/invalid-credential') {
+        message = 'Invalid credentials. Please check your email and password.';
+      } else if (error.code === 'auth/user-disabled') {
+        message = 'This account has been disabled.';
+      } else if (error.code === 'auth/invalid-api-key') {
+        message = 'Firebase API key is invalid. Please verify firebase configuration.';
+      } else if (error.code === 'auth/configuration-not-found') {
+        message = 'Email/Password sign-in is not enabled in Firebase Console.';
+      }
+
+      Alert.alert('Login Failed', message);
+    } finally {
       setLoading(false);
     }
   };
 
   return (
     <GradientBackground variant="soft">
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.container}
       >
         <View style={styles.header}>
@@ -73,6 +102,7 @@ export const LoginScreen: React.FC = () => {
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
+              autoCorrect={false}
             />
           </View>
 
@@ -80,23 +110,23 @@ export const LoginScreen: React.FC = () => {
             <Text style={styles.label}>Password</Text>
             <TextInput
               style={styles.input}
-              placeholder="••••••••"
+              placeholder="********"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
             />
           </View>
 
-          <TouchableOpacity style={styles.forgotPassword}>
+          <TouchableOpacity
+            style={styles.forgotPassword}
+            onPress={() => navigation.navigate('ForgotPassword')}
+          >
             <Text style={styles.forgotText}>Forgot Password?</Text>
           </TouchableOpacity>
 
-          <CustomButton 
-            title="Sign In" 
-            onPress={handleLogin}
-            loading={loading}
-            style={styles.button}
-          />
+          <CustomButton title="Sign In" onPress={handleLogin} loading={loading} style={styles.button} />
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>Don't have an account? </Text>

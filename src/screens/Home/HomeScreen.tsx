@@ -6,9 +6,11 @@ import { colors } from '../../theme/colors';
 import { spacing, borderRadius, typography } from '../../theme/spacing';
 import { useCycleStore } from '../../store/useCycleStore';
 import { useUserStore } from '../../store/useUserStore';
-import { calculatePredictions, getStatusMessage } from '../../utils/cycleLogic';
-import { Bell, Settings, Plus, Smile, Frown, Meh } from 'lucide-react-native';
+import { calculatePredictions, getStatusMessage, calculateLateEarly, analyzeCyclePatterns, getHealthGuidance } from '../../utils/cycleLogic';
+import { Bell, Settings, Plus, Smile, Frown, Meh, AlertCircle } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
+import { HealthInsightCard } from '../../components/HealthInsightCard';
+import { TipCard } from '../../components/TipCard';
 
 export const HomeScreen: React.FC = () => {
   const { cycles } = useCycleStore();
@@ -16,7 +18,11 @@ export const HomeScreen: React.FC = () => {
   const navigation = useNavigation<any>();
 
   const predictions = calculatePredictions(cycles);
-  const statusMessage = getStatusMessage(predictions);
+  const lateEarly = calculateLateEarly(predictions, cycles);
+  const statusMessage = getStatusMessage(predictions, lateEarly);
+  
+  const patterns = analyzeCyclePatterns(cycles);
+  const healthGuidance = getHealthGuidance(patterns);
 
   return (
     <View style={styles.container}>
@@ -37,19 +43,37 @@ export const HomeScreen: React.FC = () => {
           </View>
         </View>
 
+        {/* Health Insight Alert */}
+        <HealthInsightCard 
+          data={healthGuidance} 
+          onPress={() => navigation.navigate('Insights')} 
+        />
+
         {/* Main Status Card */}
         <GradientBackground variant="pink" style={styles.mainCard}>
           <Text style={styles.mainCardTitle}>{statusMessage}</Text>
-          <Text style={styles.mainCycleDay}>Day {predictions?.currentDay || '--'}</Text>
+          <Text style={styles.mainCycleDay}>
+            {lateEarly?.type === 'late' ? `+${lateEarly.days}` : 
+             lateEarly?.type === 'early' ? `-${lateEarly.days}` : 
+             predictions?.currentDay ? `Day ${predictions.currentDay}` : '--'}
+          </Text>
           <View style={styles.predictionRow}>
             <View style={styles.predictionItem}>
-              <Text style={styles.predictionLabel}>Ovulation in</Text>
-              <Text style={styles.predictionValue}>12 Days</Text>
+              <Text style={styles.predictionLabel}>
+                {lateEarly?.type === 'late' ? 'Delay' : 'Status'}
+              </Text>
+              <Text style={styles.predictionValue}>
+                {lateEarly?.type === 'late' ? 'Late' : 
+                 lateEarly?.type === 'early' ? 'Early' : 'On Track'}
+              </Text>
             </View>
             <View style={styles.divider} />
             <View style={styles.predictionItem}>
               <Text style={styles.predictionLabel}>Next Period</Text>
-              <Text style={styles.predictionValue}>May 12</Text>
+              <Text style={styles.predictionValue}>
+                {predictions?.nextPeriodDate ? 
+                  predictions.nextPeriodDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Pending'}
+              </Text>
             </View>
           </View>
         </GradientBackground>
@@ -71,6 +95,9 @@ export const HomeScreen: React.FC = () => {
             style={styles.halfCard}
           />
         </View>
+
+        {/* Daily Tip */}
+        <TipCard day={predictions?.currentDay} />
 
         {/* Quick Log Mood */}
         <View style={styles.section}>

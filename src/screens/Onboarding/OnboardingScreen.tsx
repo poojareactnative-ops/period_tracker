@@ -69,6 +69,7 @@ export const OnboardingScreen: React.FC = () => {
             title={isLastSlide ? "Get Started" : "Next"} 
             onPress={handleNext}
             style={styles.button}
+            textStyle={{color:'#000'}}
           />
 
           {!isLastSlide && (

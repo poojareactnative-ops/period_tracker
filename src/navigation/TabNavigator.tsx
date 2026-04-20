@@ -5,7 +5,7 @@ import { HomeScreen } from '../screens/Home/HomeScreen';
 import { CalendarScreen } from '../screens/Calendar/CalendarScreen';
 import { LogEntryScreen } from '../screens/Log/LogEntryScreen';
 import { InsightsScreen } from '../screens/Insights/InsightsScreen';
-import { ProfileScreen } from '../screens/Profile/ProfileScreen';
+import { ProfileNavigator } from './ProfileNavigator';
 import { colors } from '../theme/colors';
 
 const Tab = createBottomTabNavigator();
@@ -61,7 +61,7 @@ export const TabNavigator = () => {
       />
       <Tab.Screen 
         name="Profile" 
-        component={ProfileScreen} 
+        component={ProfileNavigator} 
         options={{
           tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
         }}
