@@ -16,6 +16,8 @@ import { CustomButton } from '../../components/CustomButton';
 import { useCycleStore } from '../../store/useCycleStore';
 import { useNavigation } from '@react-navigation/native';
 import { Smile, Meh, Frown, X, Check, Heart } from 'lucide-react-native';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { auth,db } from '../../services/firebase';
 
 const MOODS = [
   { id: 'happy', icon: <Smile size={32} />, label: 'Happy' },
@@ -62,24 +64,47 @@ export const LogEntryScreen: React.FC = () => {
   };
 
   const handleSave = async () => {
-    setLoading(true);
-    try {
-      addLog({
-        id: Date.now().toString(),
+  const user = auth.currentUser;
+
+  if (!user) {
+    Alert.alert('Error', 'User not logged in');
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    // 🔥 Save to Firestore
+    await addDoc(
+      collection(db, 'users', user.uid, 'logs'),
+      {
         date: new Date().toISOString().split('T')[0],
         mood: selectedMood,
         symptoms: selectedSymptoms,
         notes,
-      });
+        createdAt: serverTimestamp(),
+      }
+    );
 
-      Alert.alert('Success', 'Log saved successfully!');
-      navigation.goBack();
-    } catch (error) {
-      Alert.alert('Error', 'Failed to save log');
-    } finally {
-      setLoading(false);
-    }
-  };
+    // (optional) keep local state also
+    addLog({
+      id: Date.now().toString(),
+      date: new Date().toISOString().split('T')[0],
+      mood: selectedMood,
+      symptoms: selectedSymptoms,
+      notes,
+    });
+
+    Alert.alert('Success', 'Log saved to cloud!');
+    navigation.goBack();
+
+  } catch (error) {
+    console.log('Firestore Error:', error);
+    Alert.alert('Error', 'Failed to save log');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <View style={styles.container}>
