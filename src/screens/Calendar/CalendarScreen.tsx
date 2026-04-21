@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { View, StyleSheet, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import { colors } from '../../theme/colors';
 import { spacing, borderRadius, typography } from '../../theme/spacing';
 import { useCycleStore } from '../../store/useCycleStore';
 import { format, parseISO } from 'date-fns';
@@ -9,8 +8,12 @@ import { GradientBackground } from '../../components/GradientBackground';
 import { Plus } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { calculateSmartPredictions } from '../../utils/smartCycleEngin';
+import { useGlobalTheme } from '../../theme/themeProvider';
 
 export const CalendarScreen: React.FC = () => {
+  const { colors } = useGlobalTheme();
+
+  const styles = createStyles(colors);
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const { cycles, logs } = useCycleStore();
   const navigation = useNavigation<any>();
@@ -222,7 +225,7 @@ export const CalendarScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

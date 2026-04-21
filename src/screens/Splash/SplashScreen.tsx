@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { GradientBackground } from '../../components/GradientBackground';
-import { colors } from '../../theme/colors';
 import { typography } from '../../theme/spacing';
 import { useUserStore } from '../../store/useUserStore';
 import { Heart } from 'lucide-react-native';
+import { useGlobalTheme } from '../../theme/themeProvider';
+
 
 export const SplashScreen: React.FC = () => {
   const fadeAnim = new Animated.Value(0);
@@ -33,6 +34,8 @@ export const SplashScreen: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  const { colors } = useGlobalTheme();
+  const styles = createStyles(colors);
   return (
     <GradientBackground variant="pink">
       <View style={styles.container}>
@@ -51,7 +54,7 @@ export const SplashScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',

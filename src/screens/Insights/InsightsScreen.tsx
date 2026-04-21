@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
-import { colors } from '../../theme/colors';
 import { spacing, borderRadius, typography } from '../../theme/spacing';
 import { GradientBackground } from '../../components/GradientBackground';
 import { BarChart2, TrendingUp, Calendar } from 'lucide-react-native';
@@ -15,14 +14,17 @@ import {
   Moon,
 } from 'lucide-react-native';
 import { generateAdvancedInsights } from '../../utils/advancedInsights';
+import { useGlobalTheme } from '../../theme/themeProvider';
 
 const { width } = Dimensions.get('window');
 
 export const InsightsScreen: React.FC = () => {
   const { cycles, avgCycleLength, avgPeriodDuration } = useCycleStore();
-  const patterns : any = analyzeCyclePatterns(cycles);
+  const patterns: any = analyzeCyclePatterns(cycles);
   const healthGuidance = getHealthGuidance(patterns);
+  const { colors } = useGlobalTheme();
 
+  const styles = createStyles(colors);
   // Map the last 5 cycles for the chart
   const chartData = [...cycles]
     .filter(c => c.length)
@@ -50,6 +52,7 @@ export const InsightsScreen: React.FC = () => {
         return null;
     }
   };
+
 
   return (
     <View style={styles.container}>
@@ -140,7 +143,7 @@ export const InsightsScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

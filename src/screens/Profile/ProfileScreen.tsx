@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Modal, TextInput } from 'react-native';
-import { colors } from '../../theme/colors';
 import { spacing, borderRadius, typography } from '../../theme/spacing';
 import { useUserStore } from '../../store/useUserStore';
 import { useCycleStore } from '../../store/useCycleStore';
@@ -18,12 +17,14 @@ import {
   Heart,
   Calendar
 } from 'lucide-react-native';
+import { useGlobalTheme } from '../../theme/themeProvider';
 
 export const ProfileScreen: React.FC = () => {
   const { user, updateUser, setUser } = useUserStore();
   const { avgCycleLength, avgPeriodDuration, cycles } = useCycleStore();
   const navigation = useNavigation<any>();
-
+  const { colors } = useGlobalTheme();
+  const styles = createStyles(colors);
   const [notifications, setNotifications] = useState(true);
   const [biometrics, setBiometrics] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -231,7 +232,7 @@ export const ProfileScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

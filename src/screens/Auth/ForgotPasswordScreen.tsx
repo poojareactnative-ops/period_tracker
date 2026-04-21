@@ -15,10 +15,13 @@ import { ArrowLeft, Mail } from 'lucide-react-native';
 import { GradientBackground } from '../../components/GradientBackground';
 import { CustomButton } from '../../components/CustomButton';
 import { auth } from '../../services/firebase';
-import { colors } from '../../theme/colors';
 import { spacing, borderRadius, typography } from '../../theme/spacing';
+import { useGlobalTheme } from '../../theme/themeProvider';
 
 export const ForgotPasswordScreen: React.FC = () => {
+  const { colors } = useGlobalTheme();
+
+  const styles = createStyles(colors);
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -107,7 +110,7 @@ export const ForgotPasswordScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors:any) => StyleSheet.create({
   container: {
     flex: 1,
     padding: spacing.xl,

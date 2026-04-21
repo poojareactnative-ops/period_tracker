@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { GradientBackground } from '../../components/GradientBackground';
 import { CycleCard } from '../../components/CycleCard';
-import { colors } from '../../theme/colors';
 import { spacing, borderRadius, typography } from '../../theme/spacing';
 import { useCycleStore } from '../../store/useCycleStore';
 import { useUserStore } from '../../store/useUserStore';
@@ -11,6 +10,7 @@ import { Bell, Settings, Plus, Smile, Frown, Meh, AlertCircle } from 'lucide-rea
 import { useNavigation } from '@react-navigation/native';
 import { HealthInsightCard } from '../../components/HealthInsightCard';
 import { TipCard } from '../../components/TipCard';
+import { useGlobalTheme } from '../../theme/themeProvider';
 
 export const HomeScreen: React.FC = () => {
   const { cycles } = useCycleStore();
@@ -23,6 +23,9 @@ export const HomeScreen: React.FC = () => {
   
   const patterns = analyzeCyclePatterns(cycles);
   const healthGuidance = getHealthGuidance(patterns);
+  const { colors } = useGlobalTheme();
+
+  const styles = createStyles(colors);
 
   return (
     <View style={styles.container}>
@@ -144,7 +147,7 @@ export const HomeScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors:any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

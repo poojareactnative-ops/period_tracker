@@ -10,7 +10,6 @@ import {
   Platform,
   Alert
 } from 'react-native';
-import { colors } from '../../theme/colors';
 import { spacing, borderRadius, typography } from '../../theme/spacing';
 import { CustomButton } from '../../components/CustomButton';
 import { useCycleStore } from '../../store/useCycleStore';
@@ -18,6 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Smile, Meh, Frown, X, Check, Heart } from 'lucide-react-native';
 import { auth, createCycleForUser, createLogForUser, fetchLogsForUser, updateCycleForUser, upsertCycleSummaryForUser } from '../../services/firebase';
 import { calculatePredictions } from '../../utils/cycleLogic';
+import { useGlobalTheme } from '../../theme/themeProvider';
 
 const MOODS = [
   { id: 'happy', icon: <Smile size={32} />, label: 'Happy' },
@@ -31,6 +31,9 @@ const SYMPTOMS = [
 ];
 
 export const LogEntryScreen: React.FC = () => {
+  const { colors } = useGlobalTheme();
+
+  const styles = createStyles(colors);
   const [selectedMood, setSelectedMood] = useState('happy');
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [notes, setNotes] = useState('');
@@ -282,7 +285,7 @@ export const LogEntryScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

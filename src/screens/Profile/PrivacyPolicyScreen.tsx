@@ -1,12 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { colors } from '../../theme/colors';
 import { spacing, borderRadius, typography } from '../../theme/spacing';
 import { ChevronLeft } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useGlobalTheme } from '../../theme/themeProvider';
 
 export const PrivacyPolicyScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { colors } = useGlobalTheme();
+  const styles = createStyles(colors);
 
   return (
     <View style={styles.container}>
@@ -61,7 +63,7 @@ export const PrivacyPolicyScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

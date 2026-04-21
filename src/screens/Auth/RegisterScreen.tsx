@@ -16,10 +16,13 @@ import { Heart } from 'lucide-react-native';
 import { GradientBackground } from '../../components/GradientBackground';
 import { CustomButton } from '../../components/CustomButton';
 import { auth } from '../../services/firebase';
-import { colors } from '../../theme/colors';
 import { spacing, borderRadius, typography } from '../../theme/spacing';
+import { useGlobalTheme } from '../../theme/themeProvider';
 
 export const RegisterScreen: React.FC = () => {
+  const { colors } = useGlobalTheme();
+
+  const styles = createStyles(colors);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -53,7 +56,7 @@ export const RegisterScreen: React.FC = () => {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         "pooja.reactnative@gmail.com",
-        "password"
+        password
       );
 
       // ✅ Update user name
@@ -175,7 +178,7 @@ export const RegisterScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
     padding: spacing.xl,
