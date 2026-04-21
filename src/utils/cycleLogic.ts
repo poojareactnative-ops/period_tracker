@@ -1,36 +1,24 @@
-import { addDays, differenceInDays, parseISO, format, isAfter, isBefore, isSameDay } from 'date-fns';
+import { addDays, differenceInDays, parseISO, isAfter, isBefore, isSameDay } from 'date-fns';
 import { Cycle } from '../store/useCycleStore';
 
 export const calculatePredictions = (cycles: Cycle[]) => {
-  if (cycles.length === 0) return null;
+  const sortedCycles = [...cycles]
+    .filter((cycle) => isValidDate(cycle.startDate))
+    .sort((a, b) => parseISO(b.startDate).getTime() - parseISO(a.startDate).getTime());
 
-  // Sort cycles by date descending
-  const sortedCycles = [...cycles].sort((a, b) => 
-    parseISO(b.startDate).getTime() - parseISO(a.startDate).getTime()
-  );
+  if (sortedCycles.length === 0) return null;
 
   const lastCycle = sortedCycles[0];
   const lastStartDate = parseISO(lastCycle.startDate);
 
-  // Calculate average length from last 3 cycles
-  let avgLength = 28;
-  if (sortedCycles.length >= 2) {
-    const completedCycles = sortedCycles.filter(c => c.length);
-    if (completedCycles.length >= 1) {
-      const intervals = [];
-      for (let i = 0; i < Math.min(sortedCycles.length - 1, 3); i++) {
-        const current = parseISO(sortedCycles[i].startDate);
-        const previous = parseISO(sortedCycles[i+1].startDate);
-        intervals.push(differenceInDays(current, previous));
-      }
-      avgLength = Math.round(intervals.reduce((a, b) => a + b, 0) / intervals.length);
-    }
-  }
+  const avgLength = calculateAverageCycleLength(sortedCycles);
 
   const nextPeriodDate = addDays(lastStartDate, avgLength);
   const ovulationDate = addDays(nextPeriodDate, -14);
-  const fertileStart = addDays(ovulationDate, -5);
-  const fertileEnd = addDays(ovulationDate, 1);
+  const fertileStart = addDays(nextPeriodDate, -16);
+  const fertileEnd = addDays(nextPeriodDate, -12);
+  const rawCurrentDay = differenceInDays(new Date(), lastStartDate) + 1;
+  const currentDay = Number.isFinite(rawCurrentDay) && rawCurrentDay > 0 ? rawCurrentDay : 1;
 
   return {
     nextPeriodDate,
@@ -40,13 +28,13 @@ export const calculatePredictions = (cycles: Cycle[]) => {
       end: fertileEnd
     },
     avgLength,
-    currentDay: differenceInDays(new Date(), lastStartDate) + 1
+    currentDay
   };
 };
 
 export const getStatusMessage = (predictions: any, lateEarly?: any) => {
   if (!predictions) return "Log your first period to see predictions";
-  
+
   if (lateEarly) {
     if (lateEarly.type === 'late') return `Period is ${lateEarly.days} days late`;
     if (lateEarly.type === 'early') return `Period started ${lateEarly.days} days early`;
@@ -63,20 +51,29 @@ export const getStatusMessage = (predictions: any, lateEarly?: any) => {
 };
 
 export const analyzeCyclePatterns = (cycles: Cycle[]) => {
-  const completedCycles = cycles.filter(c => c.length);
+  if (!cycles || cycles.length === 0) {
+    return {
+      isIrregular: false,
+      avgCycleLength: 28,
+    };
+  }
+
+  const completedCycles = cycles
+    .map((cycle) => cycle.cycleLength ?? cycle.length)
+    .filter((length): length is number => typeof length === 'number' && length > 0);
   if (completedCycles.length < 2) return null;
 
-  const lengths = completedCycles.map(c => c.length!);
-  const avg = lengths.reduce((a, b) => a + b, 0) / lengths.length;
-  
-  const variance = lengths.reduce((acc, l) => acc + Math.abs(l - avg), 0) / lengths.length;
+  const avg = completedCycles.reduce((a, b) => a + b, 0) / completedCycles.length;
+
+  const variance = completedCycles.reduce((acc, length) => acc + Math.abs(length - avg), 0) / completedCycles.length;
 
   return {
     isIrregular: variance > 7,
     isShort: avg < 21,
     isLong: avg > 35,
     avgLength: Math.round(avg),
-    variance: Math.round(variance)
+    variance: Math.round(variance),
+    avgCycleLength: 28,
   };
 };
 
@@ -116,14 +113,14 @@ export const getHealthGuidance = (patterns: any) => {
 
 export const calculateLateEarly = (prediction: any, cycles: Cycle[]) => {
   if (!prediction) return null;
-  
+
   const today = new Date();
   const activeCycle = cycles.find(c => !c.endDate);
-  
+
   if (activeCycle) {
     const actualStart = parseISO(activeCycle.startDate);
     const diff = differenceInDays(actualStart, prediction.nextPeriodDate);
-    
+
     if (diff > 0) return { type: 'late', days: diff };
     if (diff < 0) return { type: 'early', days: Math.abs(diff) };
     return { type: 'on-time', days: 0 };
@@ -135,4 +132,31 @@ export const calculateLateEarly = (prediction: any, cycles: Cycle[]) => {
   }
 
   return null;
+};
+
+const calculateAverageCycleLength = (sortedCycles: Cycle[]): number => {
+  const explicitLengths = sortedCycles
+    .map((cycle) => cycle.cycleLength ?? cycle.length)
+    .filter((length): length is number => typeof length === 'number' && length > 0)
+    .slice(0, 3);
+
+  if (explicitLengths.length >= 2) {
+    return Math.max(1, Math.round(explicitLengths.reduce((sum, value) => sum + value, 0) / explicitLengths.length));
+  }
+
+  const intervals: number[] = [];
+  for (let index = 0; index < Math.min(sortedCycles.length - 1, 3); index += 1) {
+    const current = parseISO(sortedCycles[index].startDate);
+    const previous = parseISO(sortedCycles[index + 1].startDate);
+    const diff = differenceInDays(current, previous);
+    if (diff > 0) intervals.push(diff);
+  }
+
+  if (intervals.length === 0) return 28;
+  return Math.max(1, Math.round(intervals.reduce((sum, value) => sum + value, 0) / intervals.length));
+};
+
+const isValidDate = (dateString: string): boolean => {
+  const parsed = parseISO(dateString);
+  return !Number.isNaN(parsed.getTime());
 };

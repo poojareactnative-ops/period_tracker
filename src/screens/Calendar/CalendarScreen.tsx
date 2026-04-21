@@ -4,50 +4,93 @@ import { Calendar } from 'react-native-calendars';
 import { colors } from '../../theme/colors';
 import { spacing, borderRadius, typography } from '../../theme/spacing';
 import { useCycleStore } from '../../store/useCycleStore';
-import { format, parseISO, addDays } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { GradientBackground } from '../../components/GradientBackground';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react-native';
+import { Plus } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
+import { calculateSmartPredictions } from '../../utils/smartCycleEngin';
 
 export const CalendarScreen: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const { cycles } = useCycleStore();
+  const { cycles, logs } = useCycleStore();
+  const navigation = useNavigation<any>();
 
-  // Mock marked dates for demonstration
+  const logsForSelectedDate = useMemo(
+    () => logs.filter((log) => log.date === selectedDate),
+    [logs, selectedDate]
+  );
+
+  const predictions = calculateSmartPredictions(cycles);
   const markedDates = useMemo(() => {
     const marks: any = {};
-    
-    // Highlight today
-    marks[format(new Date(), 'yyyy-MM-dd')] = {
-      selected: true,
-      selectedColor: colors.primary,
-      selectedTextColor: 'white',
+
+    const today = format(new Date(), 'yyyy-MM-dd');
+    marks[today] = {
+      ...(marks[today] || {}),
+      marked: true,
+      dotColor: colors.primary,
     };
 
-    // Mock period days
-    ['2026-04-12', '2026-04-13', '2026-04-14', '2026-04-15', '2026-04-16'].forEach(date => {
-      marks[date] = {
-        selected: true,
-        selectedColor: colors.period,
-        selectedTextColor: 'white',
+    cycles.forEach((cycle) => {
+      if (!cycle.startDate) return;
+      const startDate = new Date(`${cycle.startDate}T00:00:00`);
+      const endDate = cycle.endDate ? new Date(`${cycle.endDate}T00:00:00`) : startDate;
+
+      if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return;
+
+      const cursor = new Date(startDate);
+      while (cursor <= endDate) {
+        const dateKey = format(cursor, 'yyyy-MM-dd');
+        marks[dateKey] = {
+          ...(marks[dateKey] || {}),
+          selected: true,
+          selectedColor: colors.period,
+          selectedTextColor: 'white',
+        };
+        cursor.setDate(cursor.getDate() + 1);
+      }
+    });
+
+    logs.forEach((log) => {
+      if (!log.date) return;
+      marks[log.date] = {
+        ...(marks[log.date] || {}),
+        marked: true,
+        dotColor: colors.primary,
       };
     });
 
-    // Mock ovulation
-    marks['2026-04-26'] = {
+    marks[selectedDate] = {
+      ...(marks[selectedDate] || {}),
       selected: true,
-      selectedColor: colors.ovulation,
+      selectedColor: marks[selectedDate]?.selectedColor || colors.primary,
       selectedTextColor: 'white',
-      marked: true,
-      dotColor: 'white',
     };
 
     return marks;
-  }, [cycles]);
+  }, [cycles, logs, selectedDate]);
+
+  const periodPredictions: any = useMemo(() => {
+    if (!selectedDate) return null;
+
+    const base = parseISO(selectedDate);
+
+    const addDays = (days: number) => {
+      const d = new Date(base);
+      d.setDate(d.getDate() + days);
+      return format(d, 'yyyy-MM-dd');
+    };
+
+    return {
+      next21: addDays(21),
+      next28: addDays(28),
+    };
+  }, [selectedDate]);
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Cycle Tracker</Text>
+        <Text style={styles.headerTitle}>🌸 When’s My Next Period?</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -79,7 +122,31 @@ export const CalendarScreen: React.FC = () => {
             }}
           />
         </View>
+        <View style={styles.calculatorContainer}>
+          <Text style={styles.sectionTitle}>Period Calculator</Text>
 
+          <View style={styles.calculatorCard}>
+            <Text style={styles.calcLabel}>
+              Based on: {format(parseISO(selectedDate), 'MMM d, yyyy')}
+            </Text>
+
+            <View style={styles.calcRow}>
+              <View style={styles.calcBox}>
+                <Text style={styles.calcTitle}>21 Day Cycle</Text>
+                <Text style={styles.calcDate}>
+                  {format(parseISO(periodPredictions.next21), 'MMM d')}
+                </Text>
+              </View>
+
+              <View style={styles.calcBox}>
+                <Text style={styles.calcTitle}>28 Day Cycle</Text>
+                <Text style={styles.calcDate}>
+                  {format(parseISO(periodPredictions.next28), 'MMM d')}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
         <View style={styles.legendContainer}>
           <Text style={styles.sectionTitle}>Legend</Text>
           <View style={styles.legendRow}>
@@ -97,15 +164,54 @@ export const CalendarScreen: React.FC = () => {
             </View>
           </View>
         </View>
+        <View style={styles.smartCard}>
+          <Text style={styles.sectionTitle}>Smart Prediction</Text>
 
+          {predictions ? (
+            <>
+              <Text style={styles.smartText}>
+                Next Period: {format(predictions.nextPeriodDate, 'MMM d')}
+              </Text>
+
+              <Text style={styles.smartText}>
+                Ovulation: {format(predictions.ovulationDate, 'MMM d')}
+              </Text>
+
+              <Text style={styles.smartText}>
+                Fertile: {format(predictions.fertileWindow.start, 'MMM d')} -{' '}
+                {format(predictions.fertileWindow.end, 'MMM d')}
+              </Text>
+
+              <Text style={styles.confidence}>
+                Accuracy: {predictions.confidence}%
+              </Text>
+            </>
+          ) : (
+            <Text>Add more cycle data for predictions</Text>
+          )}
+        </View>
         <View style={styles.logSection}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Details for {format(parseISO(selectedDate), 'MMMM d')}</Text>
           </View>
-          
+
           <GradientBackground variant="soft" style={styles.logCard}>
-            <Text style={styles.logPlaceholder}>No logs for this day yet.</Text>
-            <TouchableOpacity style={styles.addLogButton}>
+            {logsForSelectedDate.length === 0 ? (
+              <Text style={styles.logPlaceholder}>No logs for this day yet.</Text>
+            ) : (
+              <View style={styles.logsList}>
+                {logsForSelectedDate.map((log) => (
+                  <View key={log.id} style={styles.logItem}>
+                    <Text style={styles.logMood}>Mood: {log.mood}</Text>
+                    <Text style={styles.logSymptoms}>
+                      Symptoms: {log.symptoms.length > 0 ? log.symptoms.join(', ') : 'None'}
+                    </Text>
+                    {log.notes ? <Text style={styles.logNotes}>Notes: {log.notes}</Text> : null}
+                  </View>
+                ))}
+              </View>
+            )}
+            <TouchableOpacity style={styles.addLogButton} onPress={() => navigation.navigate('Log')}>
               <Plus color={colors.primary} size={20} />
               <Text style={styles.addLogText}>Add Log</Text>
             </TouchableOpacity>
@@ -190,6 +296,34 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.text.light,
     marginBottom: spacing.md,
+    textAlign: 'center',
+  },
+  logsList: {
+    width: '100%',
+    marginBottom: spacing.md,
+  },
+  logItem: {
+    width: '100%',
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  logMood: {
+    ...typography.label,
+    color: colors.text.primary,
+    marginBottom: spacing.xs,
+  },
+  logSymptoms: {
+    ...typography.caption,
+    color: colors.text.secondary,
+  },
+  logNotes: {
+    ...typography.caption,
+    color: colors.text.secondary,
+    marginTop: spacing.xs,
   },
   addLogButton: {
     flexDirection: 'row',
@@ -205,5 +339,73 @@ const styles = StyleSheet.create({
     ...typography.label,
     color: colors.primary,
     marginLeft: spacing.xs,
+  },
+  calculatorContainer: {
+    marginBottom: spacing.xl,
+  },
+
+  calculatorCard: {
+    backgroundColor: 'white',
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+
+  calcLabel: {
+    ...typography.caption,
+    color: colors.text.secondary,
+    marginBottom: spacing.md,
+    textAlign: 'center',
+  },
+
+  calcRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+
+  calcBox: {
+    flex: 1,
+    backgroundColor: colors.background,
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+    marginHorizontal: 4,
+    alignItems: 'center',
+  },
+
+  calcTitle: {
+    ...typography.caption,
+    color: colors.text.secondary,
+    marginBottom: 4,
+  },
+
+  calcDate: {
+    ...typography.h3,
+    color: colors.primary,
+    fontWeight: '700',
+  },
+  smartCard: {
+    backgroundColor: 'white',
+    padding: spacing.lg,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: spacing.xl,
+  },
+
+  smartText: {
+    fontSize: 16,
+    marginBottom: 6,
+    color: colors.text.primary,
+  },
+
+  confidence: {
+    marginTop: 10,
+    color: colors.primary,
+    fontWeight: '700',
   },
 });

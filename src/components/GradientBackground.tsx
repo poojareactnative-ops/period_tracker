@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '../theme/colors';
 
 interface Props extends ViewProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   variant?: 'pink' | 'lavender' | 'soft';
 }
 
@@ -13,7 +13,7 @@ export const GradientBackground: React.FC<Props> = ({ children, variant = 'pink'
 
   return (
     <LinearGradient
-      colors={gradientColors}
+      colors={gradientColors as [string, string, string]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={[styles.container, style]}

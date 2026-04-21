@@ -16,8 +16,8 @@ import { CustomButton } from '../../components/CustomButton';
 import { useCycleStore } from '../../store/useCycleStore';
 import { useNavigation } from '@react-navigation/native';
 import { Smile, Meh, Frown, X, Check, Heart } from 'lucide-react-native';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { auth,db } from '../../services/firebase';
+import { auth, createCycleForUser, createLogForUser, fetchLogsForUser, updateCycleForUser, upsertCycleSummaryForUser } from '../../services/firebase';
+import { calculatePredictions } from '../../utils/cycleLogic';
 
 const MOODS = [
   { id: 'happy', icon: <Smile size={32} />, label: 'Happy' },
@@ -35,14 +35,19 @@ export const LogEntryScreen: React.FC = () => {
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
+  const [periodLoading, setPeriodLoading] = useState(false);
 
   const navigation = useNavigation();
-  const addLog = useCycleStore(state => state.addLog);
+  const setLogs = useCycleStore(state => state.setLogs);
   const startPeriod = useCycleStore(state => state.startPeriod);
   const endPeriod = useCycleStore(state => state.endPeriod);
   const cycles = useCycleStore(state => state.cycles);
+  const currentPeriodStartDate = useCycleStore(state => state.currentPeriodStartDate);
+  const previousPeriodStartDate = useCycleStore(state => state.previousPeriodStartDate);
 
   const activeCycle = cycles.find(c => !c.endDate);
+  const predictions = calculatePredictions(cycles);
+  const lastPeriodDate = currentPeriodStartDate || previousPeriodStartDate || null;
 
   const toggleSymptom = (symptom: string) => {
     setSelectedSymptoms(prev =>
@@ -52,59 +57,87 @@ export const LogEntryScreen: React.FC = () => {
     );
   };
 
-  const handleTogglePeriod = () => {
-    const today = new Date().toISOString().split('T')[0];
-    if (activeCycle) {
-      endPeriod(today);
-      Alert.alert('Period Ended', 'We\'ve logged your period end date.');
-    } else {
-      startPeriod(today);
-      Alert.alert('Period Started', 'We\'ve logged your period start date.');
+  const handleTogglePeriod = async () => {
+    const user = auth.currentUser;
+
+    if (!user) {
+      Alert.alert('Error', 'User not logged in');
+      return;
+    }
+
+    const today = getTodayDate();
+    setPeriodLoading(true);
+
+    try {
+      if (activeCycle) {
+        const endedCycle = endPeriod(today);
+
+        if (!endedCycle?.endDate) {
+          Alert.alert('Invalid Date', 'Unable to end period with an invalid date.');
+          return;
+        }
+
+        await updateCycleForUser(user.uid, endedCycle.id, {
+          endDate: endedCycle.endDate,
+          cycleLength: endedCycle.cycleLength ?? endedCycle.length,
+          periodLength: endedCycle.periodLength,
+        });
+        await upsertCycleSummaryForUser(user.uid, useCycleStore.getState().cycles);
+
+        Alert.alert('Period Ended', 'We\'ve logged your period end date.');
+      } else {
+        const startedCycle = startPeriod(today);
+
+        if (!startedCycle) {
+          Alert.alert('Not Available', 'Unable to start period right now.');
+          return;
+        }
+
+        await createCycleForUser(user.uid, startedCycle);
+        await upsertCycleSummaryForUser(user.uid, useCycleStore.getState().cycles);
+        Alert.alert('Period Started', 'We\'ve logged your period start date.');
+      }
+    } catch (error) {
+      console.log('Cycle sync error:', error);
+      Alert.alert('Sync Error', 'Saved locally, but failed to sync cycle to cloud.');
+    } finally {
+      setPeriodLoading(false);
     }
   };
 
   const handleSave = async () => {
-  const user = auth.currentUser;
+    const user = auth.currentUser;
 
-  if (!user) {
-    Alert.alert('Error', 'User not logged in');
-    return;
-  }
+    if (!user) {
+      Alert.alert('Error', 'User not logged in');
+      return;
+    }
 
-  setLoading(true);
+    setLoading(true);
 
-  try {
-    // 🔥 Save to Firestore
-    await addDoc(
-      collection(db, 'users', user.uid, 'logs'),
-      {
-        date: new Date().toISOString().split('T')[0],
+    try {
+      await createLogForUser(user.uid, {
+        date: getTodayDate(),
         mood: selectedMood,
         symptoms: selectedSymptoms,
         notes,
-        createdAt: serverTimestamp(),
-      }
-    );
+      });
 
-    // (optional) keep local state also
-    addLog({
-      id: Date.now().toString(),
-      date: new Date().toISOString().split('T')[0],
-      mood: selectedMood,
-      symptoms: selectedSymptoms,
-      notes,
-    });
+      const latestLogs = await fetchLogsForUser(user.uid);
+      setLogs(latestLogs);
 
-    Alert.alert('Success', 'Log saved to cloud!');
-    navigation.goBack();
+      setSelectedSymptoms([]);
+      setNotes('');
 
-  } catch (error) {
-    console.log('Firestore Error:', error);
-    Alert.alert('Error', 'Failed to save log');
-  } finally {
-    setLoading(false);
-  }
-};
+      Alert.alert('Success', 'Log saved to cloud!');
+      navigation.goBack();
+    } catch (error) {
+      console.log('Firestore Error:', error);
+      Alert.alert('Error', 'Failed to save log');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -129,9 +162,11 @@ export const LogEntryScreen: React.FC = () => {
             <TouchableOpacity
               style={[
                 styles.periodCard,
-                activeCycle && styles.activePeriodCard
+                activeCycle && styles.activePeriodCard,
+                periodLoading && styles.disabledPeriodCard,
               ]}
               onPress={handleTogglePeriod}
+              disabled={periodLoading}
             >
               <View style={styles.periodCardContent}>
                 <View style={[styles.iconBoxCircle, activeCycle && styles.activeIconBoxCircle]}>
@@ -139,7 +174,7 @@ export const LogEntryScreen: React.FC = () => {
                 </View>
                 <View>
                   <Text style={[styles.periodCardTitle, activeCycle && styles.activePeriodCardText]}>
-                    {activeCycle ? 'Period in Progress' : 'Start Period Today'}
+                    {periodLoading ? 'Updating Period...' : activeCycle ? 'Period in Progress' : 'Start Period Today'}
                   </Text>
                   <Text style={[styles.periodCardSubtitle, activeCycle && styles.activePeriodCardText]}>
                     {activeCycle ? 'Tap to log period end' : 'Log your period start date'}
@@ -147,6 +182,31 @@ export const LogEntryScreen: React.FC = () => {
                 </View>
               </View>
             </TouchableOpacity>
+
+            <View style={styles.cycleSummaryCard}>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Last Period Date</Text>
+                <Text style={styles.summaryValue}>{formatDate(lastPeriodDate)}</Text>
+              </View>
+              <View style={styles.summaryDivider} />
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Next Predicted Period</Text>
+                <Text style={styles.summaryValue}>
+                  {predictions?.nextPeriodDate
+                    ? formatDate(predictions.nextPeriodDate)
+                    : '--'}
+                </Text>
+              </View>
+              <View style={styles.summaryDivider} />
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Fertile Window</Text>
+                <Text style={styles.summaryValue}>
+                  {predictions?.fertileWindow
+                    ? `${formatDate(predictions.fertileWindow.start)} - ${formatDate(predictions.fertileWindow.end)}`
+                    : '--'}
+                </Text>
+              </View>
+            </View>
           </View>
 
           {/* Mood Selector */}
@@ -293,6 +353,39 @@ const styles = StyleSheet.create({
   activePeriodCardText: {
     color: 'white',
   },
+  disabledPeriodCard: {
+    opacity: 0.8,
+  },
+  cycleSummaryCard: {
+    backgroundColor: 'white',
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginTop: spacing.md,
+    overflow: 'hidden',
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  summaryLabel: {
+    ...typography.caption,
+    color: colors.text.secondary,
+    fontWeight: '600',
+  },
+  summaryValue: {
+    ...typography.label,
+    color: colors.text.primary,
+    fontWeight: '700',
+  },
+  summaryDivider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginHorizontal: spacing.md,
+  },
   moodGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -360,3 +453,19 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
 });
+
+function formatDate(value: string | Date | null): string {
+  if (!value) return '--';
+  const date = typeof value === 'string' ? new Date(`${value}T00:00:00`) : value;
+  if (Number.isNaN(date.getTime())) return '--';
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function getTodayDate(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = `${now.getMonth() + 1}`.padStart(2, '0');
+  const day = `${now.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+

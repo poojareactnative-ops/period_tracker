@@ -7,12 +7,20 @@ import { BarChart2, TrendingUp, Calendar } from 'lucide-react-native';
 import { useCycleStore } from '../../store/useCycleStore';
 import { analyzeCyclePatterns, getHealthGuidance } from '../../utils/cycleLogic';
 import { HealthInsightCard } from '../../components/HealthInsightCard';
+import {
+  Droplet,
+  Activity,
+  AlertTriangle,
+  Zap,
+  Moon,
+} from 'lucide-react-native';
+import { generateAdvancedInsights } from '../../utils/advancedInsights';
 
 const { width } = Dimensions.get('window');
 
 export const InsightsScreen: React.FC = () => {
   const { cycles, avgCycleLength, avgPeriodDuration } = useCycleStore();
-  const patterns = analyzeCyclePatterns(cycles);
+  const patterns : any = analyzeCyclePatterns(cycles);
   const healthGuidance = getHealthGuidance(patterns);
 
   // Map the last 5 cycles for the chart
@@ -24,6 +32,25 @@ export const InsightsScreen: React.FC = () => {
       length: c.length || 0
     }));
 
+  const advancedInsights = generateAdvancedInsights(patterns);
+
+  const getIcon = (icon: string) => {
+    switch (icon) {
+      case 'droplet':
+        return <Droplet size={22} color="#2196F3" />;
+      case 'activity':
+        return <Activity size={22} color="#4CAF50" />;
+      case 'alert':
+        return <AlertTriangle size={22} color="#FF9800" />;
+      case 'zap':
+        return <Zap size={22} color="#3F51B5" />;
+      case 'moon':
+        return <Moon size={22} color="#9C27B0" />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -33,7 +60,7 @@ export const InsightsScreen: React.FC = () => {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Pattern Analysis Guidance */}
         <HealthInsightCard data={healthGuidance} />
-        
+
         {/* Stats Grid */}
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
@@ -89,27 +116,25 @@ export const InsightsScreen: React.FC = () => {
 
         {/* Health Insights */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Health Insights</Text>
-          <View style={styles.insightItem}>
-            <View style={[styles.iconBox, { backgroundColor: '#E3F2FD' }]}>
-              <Text style={{ fontSize: 20 }}>💧</Text>
+          <Text style={styles.sectionTitle}>Smart Insights</Text>
+
+          {advancedInsights.map((item) => (
+            <View key={item.id} style={[styles.smartCard, { backgroundColor: item.color }]}>
+
+              <View style={styles.smartIconBox}>
+                {getIcon(item.icon)}
+              </View>
+
+              <View style={styles.smartContent}>
+                <Text style={styles.smartTitle}>{item.title}</Text>
+                <Text style={styles.smartDesc}>{item.description}</Text>
+                <Text style={styles.smartTip}>💡 {item.tip}</Text>
+              </View>
             </View>
-            <View style={styles.insightText}>
-              <Text style={styles.insightTitle}>Hydration Matters</Text>
-              <Text style={styles.insightDesc}>Drinking more water can help reduce bloating during your period.</Text>
-            </View>
-          </View>
-          
-          <View style={styles.insightItem}>
-            <View style={[styles.iconBox, { backgroundColor: '#F3E5F5' }]}>
-              <Text style={{ fontSize: 20 }}>🧘</Text>
-            </View>
-            <View style={styles.insightText}>
-              <Text style={styles.insightTitle}>Gentle Movement</Text>
-              <Text style={styles.insightDesc}>Yoga can help alleviate cramps and improve your mood today.</Text>
-            </View>
-          </View>
+          ))}
         </View>
+
+
       </ScrollView>
     </View>
   );
@@ -274,5 +299,49 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.text.secondary,
     marginTop: 2,
+  },
+  emptyText: {
+    color: colors.text.secondary,
+    fontStyle: 'italic',
+  },
+  smartCard: {
+    flexDirection: 'row',
+    padding: spacing.lg,
+    borderRadius: borderRadius.lg,
+    marginBottom: spacing.md,
+    alignItems: 'flex-start',
+  },
+
+  smartIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.6)',
+    marginRight: spacing.md,
+  },
+
+  smartContent: {
+    flex: 1,
+  },
+
+  smartTitle: {
+    ...typography.label,
+    fontWeight: '700',
+    marginBottom: 4,
+    color: colors.text.primary,
+  },
+
+  smartDesc: {
+    ...typography.caption,
+    color: colors.text.secondary,
+  },
+
+  smartTip: {
+    marginTop: 6,
+    fontSize: 12,
+    color: colors.primary,
+    fontWeight: '600',
   },
 });
