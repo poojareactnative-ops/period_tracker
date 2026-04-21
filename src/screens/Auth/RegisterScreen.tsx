@@ -28,13 +28,17 @@ export const RegisterScreen: React.FC = () => {
   const navigation = useNavigation<any>();
 
   const handleRegister = async () => {
-    if (!name || !email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+    const normalizedName = name?.trim();
+    const normalizedEmail = email?.trim().toLowerCase();
+
+    // ✅ Validation
+    if (!normalizedName || !normalizedEmail || !password) {
+      Alert.alert('Error', 'Please fill all fields');
       return;
     }
 
-    if (!email.includes('@')) {
-      Alert.alert('Error', 'Enter a valid email');
+    if (!/\S+@\S+\.\S+/.test(normalizedEmail)) {
+      Alert.alert('Error', 'Enter valid email');
       return;
     }
 
@@ -43,34 +47,49 @@ export const RegisterScreen: React.FC = () => {
       return;
     }
 
-    const normalizedName = name.trim();
-    const normalizedEmail = email.trim().toLowerCase();
-
     setLoading(true);
+
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        "pooja.reactnative@gmail.com",
+        "password"
+      );
+
+      // ✅ Update user name
       await updateProfile(userCredential.user, {
         displayName: normalizedName,
       });
-      // AppNavigator swaps to main app when auth state updates.
-    } catch (error: any) {
-      let message = 'An error occurred during registration.';
 
-      if (error.code === 'auth/email-already-in-use') {
-        message = 'This email is already registered.';
-      } else if (error.code === 'auth/weak-password') {
-        message = 'Password should be at least 6 characters.';
-      } else if (error.code === 'auth/invalid-email') {
-        message = 'Invalid email address.';
-      } else if (error.code === 'auth/network-request-failed') {
-        message = 'Network error. Check your internet.';
-      } else if (error.code === 'auth/operation-not-allowed' || error.code === 'auth/configuration-not-found') {
-        message = 'Email/Password sign-up is not enabled in Firebase Console.';
-      } else if (error.code === 'auth/invalid-api-key') {
-        message = 'Firebase API key is invalid. Please verify firebase configuration.';
+      Alert.alert('Success', 'Account created successfully');
+
+    } catch (error: any) {
+      console.log('Registration Error:', error);
+
+      let message = 'Something went wrong';
+
+      switch (error.code) {
+        case 'auth/email-already-in-use':
+          message = 'Email already registered';
+          break;
+        case 'auth/invalid-email':
+          message = 'Invalid email format';
+          break;
+        case 'auth/weak-password':
+          message = 'Password too weak';
+          break;
+        case 'auth/network-request-failed':
+          message = 'Check your internet connection';
+          break;
+        case 'auth/operation-not-allowed':
+          message = 'Enable Email/Password in Firebase Console';
+          break;
+        default:
+          message = error.message;
       }
 
       Alert.alert('Registration Failed', message);
+
     } finally {
       setLoading(false);
     }

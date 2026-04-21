@@ -10,7 +10,10 @@
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",
-    "@react-native-async-storage/async-storage": "^3.0.2",
+    "@react-native-async-storage/async-storage": "^1.21.0",
+    "@react-native-firebase/app": "^24.0.0",
+    "@react-native-firebase/auth": "^24.0.0",
+    "@react-native-firebase/crashlytics": "^24.0.0",
     "@react-navigation/bottom-tabs": "^7.15.9",
     "@react-navigation/native": "^7.2.2",
     "@react-navigation/native-stack": "^7.14.11",
@@ -24,12 +27,14 @@
     "firebase": "^12.12.0",
     "lucide-react-native": "^1.8.0",
     "react": "19.1.0",
+    "react-dom": "19.1.0",
     "react-native": "0.81.5",
     "react-native-calendars": "^1.1314.0",
     "react-native-gesture-handler": "^2.31.1",
     "react-native-reanimated": "~4.1.1",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
+    "react-native-web": "^0.21.0",
     "zustand": "^5.0.12"
   },
   "devDependencies": {
