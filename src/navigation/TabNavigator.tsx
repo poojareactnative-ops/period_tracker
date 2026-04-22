@@ -7,6 +7,7 @@ import { LogEntryScreen } from '../screens/Log/LogEntryScreen';
 import { InsightsScreen } from '../screens/Insights/InsightsScreen';
 import { ProfileNavigator } from './ProfileNavigator';
 import { colors } from '../theme/colors';
+import { HomeNavigator } from './HomeNavigator';
 
 const Tab = createBottomTabNavigator();
 
@@ -33,7 +34,7 @@ export const TabNavigator = () => {
     >
       <Tab.Screen 
         name="Home" 
-        component={HomeScreen} 
+        component={HomeNavigator} 
         options={{
           tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
         }}

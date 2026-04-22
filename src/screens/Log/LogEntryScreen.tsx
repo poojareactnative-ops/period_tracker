@@ -17,7 +17,7 @@ import { useCycleStore } from '../../store/useCycleStore';
 import { useNavigation } from '@react-navigation/native';
 import { Smile, Meh, Frown, X, Check, Heart } from 'lucide-react-native';
 import { auth, createCycleForUser, createLogForUser, fetchLogsForUser, updateCycleForUser, upsertCycleSummaryForUser } from '../../services/firebase';
-import { calculatePredictions } from '../../utils/cycleLogic';
+import { calculateLateEarly, calculatePredictions } from '../../utils/cycleLogic';
 
 const MOODS = [
   { id: 'happy', icon: <Smile size={32} />, label: 'Happy' },
@@ -48,6 +48,7 @@ export const LogEntryScreen: React.FC = () => {
   const activeCycle = cycles.find(c => !c.endDate);
   const predictions = calculatePredictions(cycles);
   const lastPeriodDate = currentPeriodStartDate || previousPeriodStartDate || null;
+  const lateEarly = calculateLateEarly(predictions, cycles);
 
   const toggleSymptom = (symptom: string) => {
     setSelectedSymptoms(prev =>
@@ -184,6 +185,10 @@ export const LogEntryScreen: React.FC = () => {
             </TouchableOpacity>
 
             <View style={styles.cycleSummaryCard}>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Next cycle starts in</Text>
+                <Text style={styles.summaryValue}>{lateEarly?.daysLeft} days</Text>
+              </View>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Last Period Date</Text>
                 <Text style={styles.summaryValue}>{formatDate(lastPeriodDate)}</Text>

@@ -27,7 +27,7 @@ export const ProfileScreen: React.FC = () => {
   const [notifications, setNotifications] = useState(true);
   const [biometrics, setBiometrics] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  
+
   const [editName, setEditName] = useState(user?.displayName || '');
   const [editEmail, setEditEmail] = useState(user?.email || '');
 
@@ -74,7 +74,11 @@ export const ProfileScreen: React.FC = () => {
   };
 
   const SettingItem = ({ icon, title, value, type = 'link' }: any) => (
-    <TouchableOpacity style={styles.settingItem}>
+    <TouchableOpacity style={styles.settingItem} activeOpacity={type === 'link' ? 0.7 : 1} onPress={() => {
+      if (type === 'link') {
+        if (title === 'Privacy Policy') navigation.navigate('PrivacyPolicy');
+      }
+    }}>
       <View style={styles.settingLeft}>
         <View style={styles.iconBox}>{icon}</View>
         <Text style={styles.settingTitle}>{title}</Text>
@@ -105,7 +109,7 @@ export const ProfileScreen: React.FC = () => {
           </View>
           <Text style={styles.userName}>{user?.displayName || 'Jane Doe'}</Text>
           <Text style={styles.userEmail}>{user?.email || 'jane.doe@example.com'}</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.editButton}
             onPress={() => setIsEditModalVisible(true)}
           >
@@ -117,8 +121,8 @@ export const ProfileScreen: React.FC = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>App Settings</Text>
           <View style={styles.settingsGroup}>
-            <TouchableOpacity 
-              activeOpacity={0.7} 
+            <TouchableOpacity
+              activeOpacity={0.7}
               onPress={() => toggleNotification(!notifications)}
             >
               <SettingItem
@@ -134,12 +138,10 @@ export const ProfileScreen: React.FC = () => {
               type="switch"
               value={biometrics}
             />
-            <TouchableOpacity onPress={() => navigation.navigate('PrivacyPolicy')}>
-              <SettingItem
-                icon={<Shield color={colors.accent} size={20} />}
-                title="Privacy Policy"
-              />
-            </TouchableOpacity>
+            <SettingItem
+              icon={<Shield color={colors.accent} size={20} />}
+              title="Privacy Policy"
+            />
           </View>
         </View>
 
@@ -176,7 +178,7 @@ export const ProfileScreen: React.FC = () => {
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>Edit Profile</Text>
-              
+
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Display Name</Text>
                 <TextInput
@@ -200,13 +202,13 @@ export const ProfileScreen: React.FC = () => {
               </View>
 
               <View style={styles.modalButtons}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={[styles.modalButton, styles.cancelButton]}
                   onPress={() => setIsEditModalVisible(false)}
                 >
                   <Text style={styles.cancelButtonText}>Cancel</Text>
                 </TouchableOpacity>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={[styles.modalButton, styles.saveButton]}
                   onPress={handleSaveProfile}
                 >

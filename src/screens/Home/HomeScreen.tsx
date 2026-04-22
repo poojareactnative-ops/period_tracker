@@ -20,7 +20,7 @@ export const HomeScreen: React.FC = () => {
   const predictions = calculatePredictions(cycles);
   const lateEarly = calculateLateEarly(predictions, cycles);
   const statusMessage = getStatusMessage(predictions, lateEarly);
-  
+
   const patterns = analyzeCyclePatterns(cycles);
   const healthGuidance = getHealthGuidance(patterns);
 
@@ -34,7 +34,7 @@ export const HomeScreen: React.FC = () => {
             <Text style={styles.date}>{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</Text>
           </View>
           <View style={styles.headerIcons}>
-            <TouchableOpacity style={styles.iconButton}>
+            <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('NotificationSettings')}>
               <Bell color={colors.text.primary} size={24} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Profile')}>
@@ -44,34 +44,52 @@ export const HomeScreen: React.FC = () => {
         </View>
 
         {/* Health Insight Alert */}
-        <HealthInsightCard 
-          data={healthGuidance} 
-          onPress={() => navigation.navigate('Insights')} 
+        <HealthInsightCard
+          data={healthGuidance}
+          onPress={() => navigation.navigate('Insights')}
         />
 
         {/* Main Status Card */}
         <GradientBackground variant="pink" style={styles.mainCard}>
           <Text style={styles.mainCardTitle}>{statusMessage}</Text>
-          <Text style={styles.mainCycleDay}>
-            {lateEarly?.type === 'late' ? `+${lateEarly.days}` : 
-             lateEarly?.type === 'early' ? `-${lateEarly.days}` : 
-             predictions?.currentDay ? `Day ${predictions.currentDay}` : '--'}
-          </Text>
+          <View style={styles.statusContainer}>
+            <Text style={styles.mainCycleDay}>
+              {lateEarly?.type === 'late'
+                ? `+${lateEarly.days}`
+                : lateEarly?.type === 'early'
+                  ? `-${lateEarly.days}`
+                  : lateEarly?.type === 'on-time'
+                    ? '✓ On Time'
+                    : predictions?.currentDay
+                      ? `Day ${predictions.currentDay}`
+                      : '--'}
+            </Text>
+
+            <View style={styles.remainingContainer}>
+              <Text style={styles.remainingLabel}>
+                Next cycle starts in
+              </Text>
+              <Text style={styles.remainingValue}>
+                {lateEarly?.daysLeft} days
+              </Text>
+            </View>
+          </View>
+
           <View style={styles.predictionRow}>
             <View style={styles.predictionItem}>
               <Text style={styles.predictionLabel}>
                 {lateEarly?.type === 'late' ? 'Delay' : 'Status'}
               </Text>
               <Text style={styles.predictionValue}>
-                {lateEarly?.type === 'late' ? 'Late' : 
-                 lateEarly?.type === 'early' ? 'Early' : 'On Track'}
+                {lateEarly?.type === 'late' ? 'Late' :
+                  lateEarly?.type === 'early' ? 'Early' : 'On Track'}
               </Text>
             </View>
             <View style={styles.divider} />
             <View style={styles.predictionItem}>
               <Text style={styles.predictionLabel}>Next Period</Text>
               <Text style={styles.predictionValue}>
-                {predictions?.nextPeriodDate ? 
+                {predictions?.nextPeriodDate ?
                   predictions.nextPeriodDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Pending'}
               </Text>
             </View>
@@ -80,16 +98,16 @@ export const HomeScreen: React.FC = () => {
 
         {/* Quick Insights Row */}
         <View style={styles.row}>
-          <CycleCard 
-            title="Fertile Window" 
-            value="High" 
+          <CycleCard
+            title="Fertile Window"
+            value="High"
             subtitle="Next 3 days"
             variant="pink"
             style={styles.halfCard}
           />
-          <CycleCard 
-            title="Avg Cycle" 
-            value="28" 
+          <CycleCard
+            title="Avg Cycle"
+            value="28"
             subtitle="days"
             variant="lavender"
             style={styles.halfCard}
@@ -127,15 +145,15 @@ export const HomeScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
           <View style={styles.calendarPlaceholder}>
-             {/* We'll implement real calendar in Calendar Screen */}
-             <Text style={styles.placeholderText}>Full monthly view available in Calendar tab</Text>
+            {/* We'll implement real calendar in Calendar Screen */}
+            <Text style={styles.placeholderText}>Full monthly view available in Calendar tab</Text>
           </View>
         </View>
       </ScrollView>
 
       {/* Floating Action Button */}
-      <TouchableOpacity 
-        style={styles.fab} 
+      <TouchableOpacity
+        style={styles.fab}
         onPress={() => navigation.navigate('Log')}
       >
         <Plus color="white" size={32} />
@@ -300,5 +318,78 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 10,
     elevation: 8,
+  },
+
+  mainContentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: spacing.md,
+  },
+  daysLeftContainer: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.lg,
+  },
+  daysLeftLabel: {
+    ...typography.caption,
+    color: colors.text.white,
+    opacity: 0.8,
+    fontSize: 12,
+  },
+  daysLeftValue: {
+    ...typography.h2,
+    color: colors.text.white,
+    fontWeight: 'bold',
+    fontSize: 24,
+    marginTop: 2,
+  },
+  daysLeftSubtext: {
+    ...typography.caption,
+    color: colors.text.white,
+    opacity: 0.7,
+    fontSize: 10,
+    marginTop: 2,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginTop: spacing.md,
+  },
+  cycleDayContainer: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  cycleDayLabel: {
+    ...typography.caption,
+    color: colors.text.white,
+    opacity: 0.8,
+    marginBottom: spacing.xs,
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: spacing.md,
+  },
+  remainingContainer: {
+    alignItems: 'flex-end',
+  },
+  remainingLabel: {
+    ...typography.caption,
+    color: colors.text.white,
+    opacity: 0.8,
+  },
+  remainingValue: {
+    ...typography.body,
+    color: colors.text.white,
+    fontWeight: '600',
+    marginTop: 2,
   },
 });

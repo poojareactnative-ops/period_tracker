@@ -111,27 +111,65 @@ export const getHealthGuidance = (patterns: any) => {
   };
 };
 
+// export const calculateLateEarly = (prediction: any, cycles: Cycle[]) => {
+//   if (!prediction) return null;
+
+//   const today = new Date();
+//   const activeCycle = cycles.find(c => !c.endDate);
+
+//   if (activeCycle) {
+//     const actualStart = parseISO(activeCycle.startDate);
+//     const diff = differenceInDays(actualStart, prediction.nextPeriodDate);
+
+//     if (diff > 0) return { type: 'late', days: diff };
+//     if (diff < 0) return { type: 'early', days: Math.abs(diff) };
+//     return { type: 'on-time', days: 0 };
+//   }
+
+//   if (isAfter(today, prediction.nextPeriodDate)) {
+//     const diff = differenceInDays(today, prediction.nextPeriodDate);
+//     return { type: 'late', days: diff };
+//   }
+
+//   return null;
+// };
+
 export const calculateLateEarly = (prediction: any, cycles: Cycle[]) => {
   if (!prediction) return null;
 
   const today = new Date();
   const activeCycle = cycles.find(c => !c.endDate);
+  let result: {
+    type: 'late' | 'early' | 'on-time' | null;
+    days: number;
+    daysLeft?: number;
+  } = { type: null, days: 0 };
 
+  // Calculate days left until next period
+  const daysLeft = differenceInDays(prediction.nextPeriodDate, today);
+  
   if (activeCycle) {
     const actualStart = parseISO(activeCycle.startDate);
     const diff = differenceInDays(actualStart, prediction.nextPeriodDate);
 
-    if (diff > 0) return { type: 'late', days: diff };
-    if (diff < 0) return { type: 'early', days: Math.abs(diff) };
-    return { type: 'on-time', days: 0 };
-  }
-
-  if (isAfter(today, prediction.nextPeriodDate)) {
+    if (diff > 0) {
+      result = { type: 'late', days: diff, daysLeft: daysLeft < 0 ? 0 : daysLeft };
+    } else if (diff < 0) {
+      result = { type: 'early', days: Math.abs(diff), daysLeft: daysLeft < 0 ? 0 : daysLeft };
+    } else {
+      result = { type: 'on-time', days: 0, daysLeft: daysLeft < 0 ? 0 : daysLeft };
+    }
+  } 
+  else if (isAfter(today, prediction.nextPeriodDate)) {
     const diff = differenceInDays(today, prediction.nextPeriodDate);
-    return { type: 'late', days: diff };
+    result = { type: 'late', days: diff, daysLeft: 0 };
+  } 
+  else {
+    // No active cycle and not late - just show days left
+    result = { type: null, days: 0, daysLeft: daysLeft };
   }
 
-  return null;
+  return result;
 };
 
 const calculateAverageCycleLength = (sortedCycles: Cycle[]): number => {

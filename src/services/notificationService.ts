@@ -90,3 +90,14 @@ export const schedulePeriodReminder = async (
 export const cancelReminders = async (): Promise<void> => {
   await Notifications.cancelAllScheduledNotificationsAsync();
 };
+
+export const sendImmediateNotification = async (title: string, body: string) => {
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title,
+      body,
+      sound: true,
+    },
+    trigger: null,
+  });
+};

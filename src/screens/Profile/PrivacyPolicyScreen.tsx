@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { colors } from '../../theme/colors';
-import { spacing, borderRadius, typography } from '../../theme/spacing';
+import { spacing, typography } from '../../theme/spacing';
 import { ChevronLeft } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 
