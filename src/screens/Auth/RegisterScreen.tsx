@@ -16,16 +16,98 @@ import { Heart } from 'lucide-react-native';
 import { GradientBackground } from '../../components/GradientBackground';
 import { CustomButton } from '../../components/CustomButton';
 import { auth } from '../../services/firebase';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
 import { spacing, borderRadius, typography } from '../../theme/spacing';
 
 export const RegisterScreen: React.FC = () => {
+  const { theme } = useTheme();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const navigation = useNavigation<any>();
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: spacing.xl,
+    },
+    header: {
+      alignItems: 'center',
+      marginTop: 40,
+      marginBottom: 40,
+    },
+    logoCircle: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      backgroundColor: 'white',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 16,
+      shadowColor: theme.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    title: {
+      ...typography.h2,
+      color: theme.text.primary,
+    },
+    subtitle: {
+      ...typography.body,
+      color: theme.text.secondary,
+      marginTop: 4,
+    },
+    form: {
+      flex: 1,
+    },
+    inputContainer: {
+      marginBottom: spacing.lg,
+    },
+    label: {
+      ...typography.label,
+      color: theme.text.primary,
+      marginBottom: spacing.sm,
+    },
+    input: {
+      backgroundColor: 'white',
+      height: 56,
+      borderRadius: borderRadius.md,
+      paddingHorizontal: spacing.md,
+      fontSize: 16,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    privacyContainer: {
+      marginBottom: spacing.xl,
+    },
+    privacyText: {
+      ...typography.caption,
+      color: theme.text.secondary,
+      textAlign: 'center',
+      lineHeight: 18,
+    },
+    button: {
+      marginBottom: spacing.xl,
+    },
+    footer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      marginBottom: 40,
+    },
+    footerText: {
+      ...typography.body,
+      color: theme.text.secondary,
+    },
+    linkText: {
+      ...typography.body,
+      color: theme.primary,
+      fontWeight: '700',
+    },
+  });
 
   const handleRegister = async () => {
     const normalizedName = name?.trim();
@@ -104,7 +186,7 @@ export const RegisterScreen: React.FC = () => {
         <ScrollView showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
             <View style={styles.logoCircle}>
-              <Heart color={colors.primary} size={32} fill={colors.primary} />
+              <Heart color={theme.primary} size={32} fill={theme.primary} />
             </View>
             <Text style={styles.title}>Join FlowTrack</Text>
             <Text style={styles.subtitle}>Start tracking your wellness today</Text>
@@ -174,84 +256,3 @@ export const RegisterScreen: React.FC = () => {
     </GradientBackground>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: spacing.xl,
-  },
-  header: {
-    alignItems: 'center',
-    marginTop: 40,
-    marginBottom: 40,
-  },
-  logoCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: 'white',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  title: {
-    ...typography.h2,
-    color: colors.text.primary,
-  },
-  subtitle: {
-    ...typography.body,
-    color: colors.text.secondary,
-    marginTop: 4,
-  },
-  form: {
-    flex: 1,
-  },
-  inputContainer: {
-    marginBottom: spacing.lg,
-  },
-  label: {
-    ...typography.label,
-    color: colors.text.primary,
-    marginBottom: spacing.sm,
-  },
-  input: {
-    backgroundColor: 'white',
-    height: 56,
-    borderRadius: borderRadius.md,
-    paddingHorizontal: spacing.md,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  privacyContainer: {
-    marginBottom: spacing.xl,
-  },
-  privacyText: {
-    ...typography.caption,
-    color: colors.text.secondary,
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-  button: {
-    marginBottom: spacing.xl,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 40,
-  },
-  footerText: {
-    ...typography.body,
-    color: colors.text.secondary,
-  },
-  linkText: {
-    ...typography.body,
-    color: colors.primary,
-    fontWeight: '700',
-  },
-});

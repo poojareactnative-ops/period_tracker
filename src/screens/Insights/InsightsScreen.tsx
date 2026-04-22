@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
 import { spacing, borderRadius, typography } from '../../theme/spacing';
 import { GradientBackground } from '../../components/GradientBackground';
 import { BarChart2, TrendingUp, Calendar } from 'lucide-react-native';
@@ -19,8 +19,9 @@ import { generateAdvancedInsights } from '../../utils/advancedInsights';
 const { width } = Dimensions.get('window');
 
 export const InsightsScreen: React.FC = () => {
+  const { theme } = useTheme();
   const { cycles, avgCycleLength, avgPeriodDuration } = useCycleStore();
-  const patterns : any = analyzeCyclePatterns(cycles);
+  const patterns: any = analyzeCyclePatterns(cycles);
   const healthGuidance = getHealthGuidance(patterns);
 
   // Map the last 5 cycles for the chart
@@ -51,6 +52,207 @@ export const InsightsScreen: React.FC = () => {
     }
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    header: {
+      paddingTop: 60,
+      paddingHorizontal: spacing.lg,
+      paddingBottom: spacing.md,
+      backgroundColor: theme.surface,
+    },
+    headerTitle: {
+      ...typography.h2,
+      color: theme.text.primary,
+    },
+    scrollContent: {
+      padding: spacing.lg,
+      paddingBottom: 40,
+    },
+    statsGrid: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: spacing.xl,
+    },
+    statCard: {
+      width: '48%',
+      backgroundColor: theme.surface,
+      padding: spacing.lg,
+      borderRadius: borderRadius.lg,
+      borderWidth: 1,
+      borderColor: theme.border,
+      alignItems: 'center',
+    },
+    statValue: {
+      ...typography.h2,
+      color: theme.text.primary,
+      marginTop: spacing.sm,
+    },
+    statLabel: {
+      ...typography.caption,
+      color: theme.text.secondary,
+      fontWeight: '600',
+    },
+    section: {
+      marginBottom: spacing.xl,
+    },
+    sectionTitle: {
+      ...typography.h3,
+      color: theme.text.primary,
+      marginBottom: spacing.md,
+    },
+    chartContainer: {
+      backgroundColor: theme.surface,
+      padding: spacing.xl,
+      borderRadius: borderRadius.xl,
+      flexDirection: 'row',
+      height: 250,
+    },
+    chart: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      justifyContent: 'space-around',
+      paddingBottom: 20,
+    },
+    barContainer: {
+      alignItems: 'center',
+      width: 40,
+    },
+    bar: {
+      width: 12,
+      borderRadius: 6,
+      overflow: 'hidden',
+      backgroundColor: theme.border,
+    },
+    barGradient: {
+      flex: 1,
+    },
+    barLabel: {
+      ...typography.caption,
+      color: theme.text.secondary,
+      marginTop: 8,
+      position: 'absolute',
+      bottom: -20,
+    },
+    chartYAxis: {
+      justifyContent: 'space-between',
+      paddingBottom: 20,
+      marginLeft: 10,
+    },
+    axisLabel: {
+      ...typography.caption,
+      color: theme.text.light,
+      fontSize: 10,
+    },
+    accuracyCard: {
+      padding: spacing.xl,
+      borderRadius: borderRadius.xl,
+      marginBottom: spacing.xl,
+    },
+    accuracyContent: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: spacing.md,
+    },
+    accuracyTitle: {
+      ...typography.label,
+      color: theme.text.white,
+      fontWeight: '700',
+    },
+    accuracySubtitle: {
+      ...typography.caption,
+      color: theme.text.white,
+      opacity: 0.8,
+    },
+    accuracyPercentage: {
+      ...typography.h1,
+      color: theme.text.white,
+    },
+    accuracyBarBg: {
+      height: 8,
+      backgroundColor: 'rgba(255,255,255,0.2)',
+      borderRadius: 4,
+      overflow: 'hidden',
+    },
+    accuracyBarFill: {
+      height: '100%',
+      backgroundColor: theme.text.white,
+      borderRadius: 4,
+    },
+    insightItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: spacing.lg,
+      backgroundColor: theme.surface,
+      padding: spacing.md,
+      borderRadius: borderRadius.md,
+    },
+    iconBox: {
+      width: 48,
+      height: 48,
+      borderRadius: 12,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: spacing.md,
+    },
+    insightText: {
+      flex: 1,
+    },
+    insightTitle: {
+      ...typography.label,
+      color: theme.text.primary,
+      fontWeight: '700',
+    },
+    insightDesc: {
+      ...typography.caption,
+      color: theme.text.secondary,
+      marginTop: 2,
+    },
+    emptyText: {
+      color: theme.text.secondary,
+      fontStyle: 'italic',
+    },
+    smartCard: {
+      flexDirection: 'row',
+      padding: spacing.lg,
+      borderRadius: borderRadius.lg,
+      marginBottom: spacing.md,
+      alignItems: 'flex-start',
+    },
+    smartIconBox: {
+      width: 44,
+      height: 44,
+      borderRadius: 12,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(255,255,255,0.6)',
+      marginRight: spacing.md,
+    },
+    smartContent: {
+      flex: 1,
+    },
+    smartTitle: {
+      ...typography.label,
+      fontWeight: '700',
+      marginBottom: 4,
+      color: theme.text.primary,
+    },
+    smartDesc: {
+      ...typography.caption,
+      color: theme.text.secondary,
+    },
+    smartTip: {
+      marginTop: 6,
+      fontSize: 12,
+      color: theme.primary,
+      fontWeight: '600',
+    },
+  });
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -59,18 +261,18 @@ export const InsightsScreen: React.FC = () => {
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Pattern Analysis Guidance */}
-        <HealthInsightCard data={healthGuidance} />
+        <HealthInsightCard data={healthGuidance} onPress={() => {}} />
 
         {/* Stats Grid */}
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
-            <TrendingUp color={colors.primary} size={24} />
-            <Text style={styles.statValue}>{avgCycleLength} Days</Text>
+            <TrendingUp color={theme.primary} size={24} />
+            <Text style={styles.statValue}>{avgCycleLength || 28} Days</Text>
             <Text style={styles.statLabel}>Avg Cycle</Text>
           </View>
           <View style={styles.statCard}>
-            <Calendar color={colors.secondary} size={24} />
-            <Text style={styles.statValue}>{avgPeriodDuration} Days</Text>
+            <Calendar color={theme.secondary} size={24} />
+            <Text style={styles.statValue}>{avgPeriodDuration || 5} Days</Text>
             <Text style={styles.statLabel}>Avg Period</Text>
           </View>
         </View>
@@ -80,14 +282,16 @@ export const InsightsScreen: React.FC = () => {
           <Text style={styles.sectionTitle}>Cycle Length Trend</Text>
           <View style={styles.chartContainer}>
             <View style={styles.chart}>
-              {chartData.length > 0 ? chartData.map((data, index) => (
-                <View key={index} style={styles.barContainer}>
-                  <View style={[styles.bar, { height: Math.min(data.length * 4, 180) }]}>
-                    <GradientBackground variant="pink" style={styles.barGradient} />
+              {chartData.length > 0 ? (
+                chartData.map((data, index) => (
+                  <View key={index} style={styles.barContainer}>
+                    <View style={[styles.bar, { height: Math.min(data.length * 4, 180) }]}>
+                      <GradientBackground variant="pink" style={styles.barGradient} />
+                    </View>
+                    <Text style={styles.barLabel}>{data.month}</Text>
                   </View>
-                  <Text style={styles.barLabel}>{data.month}</Text>
-                </View>
-              )) : (
+                ))
+              ) : (
                 <Text style={styles.emptyText}>Log more periods to see trends</Text>
               )}
             </View>
@@ -119,12 +323,10 @@ export const InsightsScreen: React.FC = () => {
           <Text style={styles.sectionTitle}>Smart Insights</Text>
 
           {advancedInsights.map((item) => (
-            <View key={item.id} style={[styles.smartCard, { backgroundColor: item.color }]}>
-
+            <View key={item.id} style={[styles.smartCard, { backgroundColor: item.color || theme.surface }]}>
               <View style={styles.smartIconBox}>
                 {getIcon(item.icon)}
               </View>
-
               <View style={styles.smartContent}>
                 <Text style={styles.smartTitle}>{item.title}</Text>
                 <Text style={styles.smartDesc}>{item.description}</Text>
@@ -133,215 +335,7 @@ export const InsightsScreen: React.FC = () => {
             </View>
           ))}
         </View>
-
-
       </ScrollView>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    paddingTop: 60,
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
-    backgroundColor: 'white',
-  },
-  headerTitle: {
-    ...typography.h2,
-    color: colors.text.primary,
-  },
-  scrollContent: {
-    padding: spacing.lg,
-    paddingBottom: 40,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: spacing.xl,
-  },
-  statCard: {
-    width: '48%',
-    backgroundColor: 'white',
-    padding: spacing.lg,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: 'center',
-  },
-  statValue: {
-    ...typography.h2,
-    color: colors.text.primary,
-    marginTop: spacing.sm,
-  },
-  statLabel: {
-    ...typography.caption,
-    color: colors.text.secondary,
-    fontWeight: '600',
-  },
-  section: {
-    marginBottom: spacing.xl,
-  },
-  sectionTitle: {
-    ...typography.h3,
-    color: colors.text.primary,
-    marginBottom: spacing.md,
-  },
-  chartContainer: {
-    backgroundColor: colors.surface,
-    padding: spacing.xl,
-    borderRadius: borderRadius.xl,
-    flexDirection: 'row',
-    height: 250,
-  },
-  chart: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-around',
-    paddingBottom: 20,
-  },
-  barContainer: {
-    alignItems: 'center',
-    width: 40,
-  },
-  bar: {
-    width: 12,
-    borderRadius: 6,
-    overflow: 'hidden',
-    backgroundColor: colors.border,
-  },
-  barGradient: {
-    flex: 1,
-  },
-  barLabel: {
-    ...typography.caption,
-    color: colors.text.secondary,
-    marginTop: 8,
-    position: 'absolute',
-    bottom: -20,
-  },
-  chartYAxis: {
-    justifyContent: 'space-between',
-    paddingBottom: 20,
-    marginLeft: 10,
-  },
-  axisLabel: {
-    ...typography.caption,
-    color: colors.text.light,
-    fontSize: 10,
-  },
-  accuracyCard: {
-    padding: spacing.xl,
-    borderRadius: borderRadius.xl,
-    marginBottom: spacing.xl,
-  },
-  accuracyContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  accuracyTitle: {
-    ...typography.label,
-    color: 'white',
-    fontWeight: '700',
-  },
-  accuracySubtitle: {
-    ...typography.caption,
-    color: 'white',
-    opacity: 0.8,
-  },
-  accuracyPercentage: {
-    ...typography.h1,
-    color: 'white',
-  },
-  accuracyBarBg: {
-    height: 8,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  accuracyBarFill: {
-    height: '100%',
-    backgroundColor: 'white',
-    borderRadius: 4,
-  },
-  insightItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-    backgroundColor: colors.surface,
-    padding: spacing.md,
-    borderRadius: borderRadius.md,
-  },
-  iconBox: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.md,
-  },
-  insightText: {
-    flex: 1,
-  },
-  insightTitle: {
-    ...typography.label,
-    color: colors.text.primary,
-    fontWeight: '700',
-  },
-  insightDesc: {
-    ...typography.caption,
-    color: colors.text.secondary,
-    marginTop: 2,
-  },
-  emptyText: {
-    color: colors.text.secondary,
-    fontStyle: 'italic',
-  },
-  smartCard: {
-    flexDirection: 'row',
-    padding: spacing.lg,
-    borderRadius: borderRadius.lg,
-    marginBottom: spacing.md,
-    alignItems: 'flex-start',
-  },
-
-  smartIconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.6)',
-    marginRight: spacing.md,
-  },
-
-  smartContent: {
-    flex: 1,
-  },
-
-  smartTitle: {
-    ...typography.label,
-    fontWeight: '700',
-    marginBottom: 4,
-    color: colors.text.primary,
-  },
-
-  smartDesc: {
-    ...typography.caption,
-    color: colors.text.secondary,
-  },
-
-  smartTip: {
-    marginTop: 6,
-    fontSize: 12,
-    color: colors.primary,
-    fontWeight: '600',
-  },
-});

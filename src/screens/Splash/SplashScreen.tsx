@@ -1,12 +1,13 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { GradientBackground } from '../../components/GradientBackground';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
 import { typography } from '../../theme/spacing';
 import { useUserStore } from '../../store/useUserStore';
 import { Heart } from 'lucide-react-native';
 
 export const SplashScreen: React.FC = () => {
+  const { theme } = useTheme();
   const fadeAnim = new Animated.Value(0);
   const scaleAnim = new Animated.Value(0.8);
   const setLoading = useUserStore(state => state.setLoading);
@@ -41,10 +42,10 @@ export const SplashScreen: React.FC = () => {
           { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }
         ]}>
           <View style={styles.iconCircle}>
-            <Heart color={colors.primary} size={48} fill={colors.primary} />
+            <Heart color={theme.primary} size={48} fill={theme.primary} />
           </View>
-          <Text style={styles.appName}>FlowTrack</Text>
-          <Text style={styles.tagline}>Your Body, Your Rhythm</Text>
+          <Text style={[styles.appName, { color: theme.text.white }]}>FlowTrack</Text>
+          <Text style={[styles.tagline, { color: theme.text.white }]}>Your Body, Your Rhythm</Text>
         </Animated.View>
       </View>
     </GradientBackground>
@@ -76,13 +77,11 @@ const styles = StyleSheet.create({
   },
   appName: {
     ...typography.h1,
-    color: colors.text.white,
     letterSpacing: 2,
     fontWeight: '800',
   },
   tagline: {
     ...typography.body,
-    color: colors.text.white,
     opacity: 0.9,
     marginTop: 8,
   },

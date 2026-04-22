@@ -10,7 +10,7 @@ import {
   Platform,
   Alert
 } from 'react-native';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
 import { spacing, borderRadius, typography } from '../../theme/spacing';
 import { CustomButton } from '../../components/CustomButton';
 import { useCycleStore } from '../../store/useCycleStore';
@@ -31,6 +31,7 @@ const SYMPTOMS = [
 ];
 
 export const LogEntryScreen: React.FC = () => {
+  const { theme } = useTheme();
   const [selectedMood, setSelectedMood] = useState('happy');
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [notes, setNotes] = useState('');
@@ -140,15 +141,187 @@ export const LogEntryScreen: React.FC = () => {
     }
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingTop: 60,
+      paddingHorizontal: spacing.lg,
+      paddingBottom: spacing.md,
+      backgroundColor: theme.surface,
+    },
+    headerTitle: {
+      ...typography.h3,
+      color: theme.text.primary,
+    },
+    scrollContent: {
+      padding: spacing.lg,
+    },
+    section: {
+      marginBottom: spacing.xl,
+    },
+    sectionTitle: {
+      ...typography.h3,
+      color: theme.text.primary,
+      marginBottom: spacing.md,
+    },
+    periodCard: {
+      backgroundColor: theme.surface,
+      padding: spacing.md,
+      borderRadius: borderRadius.lg,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    activePeriodCard: {
+      backgroundColor: theme.period,
+      borderColor: theme.period,
+    },
+    periodCardContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    iconBoxCircle: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: theme.surface,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: spacing.md,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    activeIconBoxCircle: {
+      backgroundColor: 'rgba(255,255,255,0.2)',
+      borderColor: 'transparent',
+    },
+    periodCardTitle: {
+      ...typography.label,
+      color: theme.text.primary,
+      fontWeight: '700',
+    },
+    periodCardSubtitle: {
+      ...typography.caption,
+      color: theme.text.secondary,
+    },
+    activePeriodCardText: {
+      color: theme.text.white,
+    },
+    disabledPeriodCard: {
+      opacity: 0.8,
+    },
+    cycleSummaryCard: {
+      backgroundColor: theme.surface,
+      borderRadius: borderRadius.lg,
+      borderWidth: 1,
+      borderColor: theme.border,
+      marginTop: spacing.md,
+      overflow: 'hidden',
+    },
+    summaryRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+    },
+    summaryLabel: {
+      ...typography.caption,
+      color: theme.text.secondary,
+      fontWeight: '600',
+    },
+    summaryValue: {
+      ...typography.label,
+      color: theme.text.primary,
+      fontWeight: '700',
+    },
+    summaryDivider: {
+      height: 1,
+      backgroundColor: theme.border,
+      marginHorizontal: spacing.md,
+    },
+    moodGrid: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    moodItem: {
+      width: '22%',
+      aspectRatio: 1,
+      backgroundColor: theme.surface,
+      borderRadius: borderRadius.md,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: 'transparent',
+    },
+    activeMoodItem: {
+      borderColor: theme.primary,
+      backgroundColor: theme.background,
+    },
+    moodLabel: {
+      ...typography.caption,
+      marginTop: 4,
+      color: theme.text.light,
+    },
+    activeMoodLabel: {
+      color: theme.primary,
+      fontWeight: '700',
+    },
+    chipContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+    },
+    chip: {
+      backgroundColor: theme.surface,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderRadius: borderRadius.full,
+      marginRight: spacing.sm,
+      marginBottom: spacing.sm,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    activeChip: {
+      backgroundColor: theme.primary,
+      borderColor: theme.primary,
+    },
+    chipText: {
+      ...typography.label,
+      color: theme.text.secondary,
+    },
+    activeChipText: {
+      color: theme.text.white,
+    },
+    notesInput: {
+      backgroundColor: theme.surface,
+      padding: spacing.md,
+      borderRadius: borderRadius.md,
+      borderWidth: 1,
+      borderColor: theme.border,
+      minHeight: 120,
+      fontSize: 16,
+      color: theme.text.primary,
+    },
+    saveButton: {
+      marginTop: spacing.md,
+      marginBottom: 40,
+    },
+  });
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <X color={colors.text.primary} size={28} />
+          <X color={theme.text.primary} size={28} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Daily Log</Text>
         <TouchableOpacity onPress={handleSave}>
-          <Check color={colors.primary} size={28} />
+          <Check color={theme.primary} size={28} />
         </TouchableOpacity>
       </View>
 
@@ -171,7 +344,7 @@ export const LogEntryScreen: React.FC = () => {
             >
               <View style={styles.periodCardContent}>
                 <View style={[styles.iconBoxCircle, activeCycle && styles.activeIconBoxCircle]}>
-                  <Heart color={activeCycle ? 'white' : colors.primary} size={24} fill={activeCycle ? 'white' : 'transparent'} />
+                  <Heart color={activeCycle ? theme.text.white : theme.primary} size={24} fill={activeCycle ? theme.text.white : 'transparent'} />
                 </View>
                 <View>
                   <Text style={[styles.periodCardTitle, activeCycle && styles.activePeriodCardText]}>
@@ -187,7 +360,7 @@ export const LogEntryScreen: React.FC = () => {
             <View style={styles.cycleSummaryCard}>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Next cycle starts in</Text>
-                <Text style={styles.summaryValue}>{lateEarly?.daysLeft} days</Text>
+                <Text style={styles.summaryValue}>{lateEarly?.daysLeft ?? '--'} days</Text>
               </View>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Last Period Date</Text>
@@ -228,7 +401,7 @@ export const LogEntryScreen: React.FC = () => {
                   onPress={() => setSelectedMood(mood.id)}
                 >
                   {React.cloneElement(mood.icon, {
-                    color: selectedMood === mood.id ? colors.primary : colors.text.light
+                    color: selectedMood === mood.id ? theme.primary : theme.text.light
                   })}
                   <Text style={[
                     styles.moodLabel,
@@ -267,6 +440,7 @@ export const LogEntryScreen: React.FC = () => {
             <TextInput
               style={styles.notesInput}
               placeholder="How was your day? Any specific observations?"
+              placeholderTextColor={theme.text.light}
               multiline
               numberOfLines={4}
               textAlignVertical="top"
@@ -287,178 +461,6 @@ export const LogEntryScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 60,
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
-    backgroundColor: 'white',
-  },
-  headerTitle: {
-    ...typography.h3,
-    color: colors.text.primary,
-  },
-  scrollContent: {
-    padding: spacing.lg,
-  },
-  section: {
-    marginBottom: spacing.xl,
-  },
-  sectionTitle: {
-    ...typography.h3,
-    color: colors.text.primary,
-    marginBottom: spacing.md,
-  },
-  periodCard: {
-    backgroundColor: colors.surface,
-    padding: spacing.md,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  activePeriodCard: {
-    backgroundColor: colors.period,
-    borderColor: colors.period,
-  },
-  periodCardContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconBoxCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'white',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  activeIconBoxCircle: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderColor: 'transparent',
-  },
-  periodCardTitle: {
-    ...typography.label,
-    color: colors.text.primary,
-    fontWeight: '700',
-  },
-  periodCardSubtitle: {
-    ...typography.caption,
-    color: colors.text.secondary,
-  },
-  activePeriodCardText: {
-    color: 'white',
-  },
-  disabledPeriodCard: {
-    opacity: 0.8,
-  },
-  cycleSummaryCard: {
-    backgroundColor: 'white',
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginTop: spacing.md,
-    overflow: 'hidden',
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  summaryLabel: {
-    ...typography.caption,
-    color: colors.text.secondary,
-    fontWeight: '600',
-  },
-  summaryValue: {
-    ...typography.label,
-    color: colors.text.primary,
-    fontWeight: '700',
-  },
-  summaryDivider: {
-    height: 1,
-    backgroundColor: colors.border,
-    marginHorizontal: spacing.md,
-  },
-  moodGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  moodItem: {
-    width: '22%',
-    aspectRatio: 1,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  activeMoodItem: {
-    borderColor: colors.primary,
-    backgroundColor: colors.background,
-  },
-  moodLabel: {
-    ...typography.caption,
-    marginTop: 4,
-    color: colors.text.light,
-  },
-  activeMoodLabel: {
-    color: colors.primary,
-    fontWeight: '700',
-  },
-  chipContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  chip: {
-    backgroundColor: colors.surface,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.full,
-    marginRight: spacing.sm,
-    marginBottom: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  activeChip: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  chipText: {
-    ...typography.label,
-    color: colors.text.secondary,
-  },
-  activeChipText: {
-    color: 'white',
-  },
-  notesInput: {
-    backgroundColor: colors.surface,
-    padding: spacing.md,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    minHeight: 120,
-    fontSize: 16,
-    color: colors.text.primary,
-  },
-  saveButton: {
-    marginTop: spacing.md,
-    marginBottom: 40,
-  },
-});
-
 function formatDate(value: string | Date | null): string {
   if (!value) return '--';
   const date = typeof value === 'string' ? new Date(`${value}T00:00:00`) : value;
@@ -473,4 +475,3 @@ function getTodayDate(): string {
   const day = `${now.getDate()}`.padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
-

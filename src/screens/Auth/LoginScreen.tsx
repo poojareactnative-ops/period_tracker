@@ -15,15 +15,98 @@ import { Heart } from 'lucide-react-native';
 import { GradientBackground } from '../../components/GradientBackground';
 import { CustomButton } from '../../components/CustomButton';
 import { auth } from '../../services/firebase';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
 import { spacing, borderRadius, typography } from '../../theme/spacing';
 
 export const LoginScreen: React.FC = () => {
+  const { theme } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const navigation = useNavigation<any>();
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: spacing.xl,
+    },
+    header: {
+      alignItems: 'center',
+      marginTop: 60,
+      marginBottom: 40,
+    },
+    logoCircle: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      backgroundColor: 'white',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 16,
+      shadowColor: theme.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    title: {
+      ...typography.h2,
+      color: theme.text.primary,
+    },
+    subtitle: {
+      ...typography.body,
+      color: theme.text.secondary,
+      marginTop: 4,
+    },
+    form: {
+      flex: 1,
+    },
+    inputContainer: {
+      marginBottom: spacing.lg,
+    },
+    label: {
+      ...typography.label,
+      color: theme.text.primary,
+      marginBottom: spacing.sm,
+    },
+    input: {
+      backgroundColor: 'white',
+      height: 56,
+      borderRadius: borderRadius.md,
+      paddingHorizontal: spacing.md,
+      fontSize: 16,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    forgotPassword: {
+      alignSelf: 'flex-end',
+      marginBottom: spacing.xl,
+    },
+    forgotText: {
+      ...typography.label,
+      color: theme.primary,
+      fontWeight: '600',
+    },
+    button: {
+      marginBottom: spacing.xl,
+    },
+    footer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      marginTop: 'auto',
+      marginBottom: 20,
+    },
+    footerText: {
+      ...typography.body,
+      color: theme.text.secondary,
+    },
+    linkText: {
+      ...typography.body,
+      color: theme.primary,
+      fontWeight: '700',
+    },
+  });
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -86,7 +169,7 @@ export const LoginScreen: React.FC = () => {
       >
         <View style={styles.header}>
           <View style={styles.logoCircle}>
-            <Heart color={colors.primary} size={32} fill={colors.primary} />
+            <Heart color={theme.primary} size={32} fill={theme.primary} />
           </View>
           <Text style={styles.title}>Welcome Back</Text>
           <Text style={styles.subtitle}>Sign in to continue your journey</Text>
@@ -139,85 +222,3 @@ export const LoginScreen: React.FC = () => {
     </GradientBackground>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: spacing.xl,
-  },
-  header: {
-    alignItems: 'center',
-    marginTop: 60,
-    marginBottom: 40,
-  },
-  logoCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: 'white',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  title: {
-    ...typography.h2,
-    color: colors.text.primary,
-  },
-  subtitle: {
-    ...typography.body,
-    color: colors.text.secondary,
-    marginTop: 4,
-  },
-  form: {
-    flex: 1,
-  },
-  inputContainer: {
-    marginBottom: spacing.lg,
-  },
-  label: {
-    ...typography.label,
-    color: colors.text.primary,
-    marginBottom: spacing.sm,
-  },
-  input: {
-    backgroundColor: 'white',
-    height: 56,
-    borderRadius: borderRadius.md,
-    paddingHorizontal: spacing.md,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginBottom: spacing.xl,
-  },
-  forgotText: {
-    ...typography.label,
-    color: colors.primary,
-    fontWeight: '600',
-  },
-  button: {
-    marginBottom: spacing.xl,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 'auto',
-    marginBottom: 20,
-  },
-  footerText: {
-    ...typography.body,
-    color: colors.text.secondary,
-  },
-  linkText: {
-    ...typography.body,
-    color: colors.primary,
-    fontWeight: '700',
-  },
-});

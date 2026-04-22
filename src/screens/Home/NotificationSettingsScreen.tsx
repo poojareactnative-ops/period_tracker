@@ -9,7 +9,7 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
 import { spacing, borderRadius, typography } from '../../theme/spacing';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -19,6 +19,7 @@ import { useCycleStore } from '../../store/useCycleStore';
 import { format } from 'date-fns';
 
 export const NotificationSettingsScreen: React.FC = () => {
+  const { theme } = useTheme();
   const navigation = useNavigation();
   const { cycles } = useCycleStore();
   
@@ -159,6 +160,225 @@ export const NotificationSettingsScreen: React.FC = () => {
     return `${daysLeft} days until your predicted period`;
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.xl,
+      paddingBottom: spacing.md,
+      backgroundColor: theme.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    backButton: {
+      width: 40,
+      height: 40,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    headerTitle: {
+      ...typography.h2,
+      color: theme.text.primary,
+    },
+    placeholder: {
+      width: 40,
+    },
+    content: {
+      padding: spacing.lg,
+      paddingBottom: spacing.xxl,
+    },
+    section: {
+      marginBottom: spacing.xl,
+      backgroundColor: theme.surface,
+      borderRadius: borderRadius.lg,
+      padding: spacing.lg,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    toggleRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: spacing.sm,
+    },
+    toggleInfo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+    },
+    toggleLabel: {
+      ...typography.h3,
+      color: theme.text.primary,
+    },
+    toggleDescription: {
+      ...typography.body,
+      color: theme.text.secondary,
+      marginTop: spacing.xs,
+    },
+    sectionTitle: {
+      ...typography.h3,
+      color: theme.text.primary,
+      marginBottom: spacing.xs,
+    },
+    sectionDescription: {
+      ...typography.caption,
+      color: theme.text.secondary,
+      marginBottom: spacing.md,
+    },
+    cycleLengthContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: spacing.sm,
+      marginTop: spacing.sm,
+    },
+    cycleLengthButton: {
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderRadius: borderRadius.md,
+      backgroundColor: theme.background,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    cycleLengthButtonActive: {
+      backgroundColor: theme.primary,
+      borderColor: theme.primary,
+    },
+    cycleLengthText: {
+      ...typography.body,
+      color: theme.text.secondary,
+    },
+    cycleLengthTextActive: {
+      color: theme.text.white,
+      fontWeight: '600',
+    },
+    advanceContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: spacing.sm,
+    },
+    advanceButton: {
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderRadius: borderRadius.md,
+      backgroundColor: theme.background,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    advanceButtonActive: {
+      backgroundColor: theme.secondary,
+      borderColor: theme.secondary,
+    },
+    advanceText: {
+      ...typography.caption,
+      color: theme.text.secondary,
+    },
+    advanceTextActive: {
+      color: theme.text.white,
+      fontWeight: '600',
+    },
+    previewBox: {
+      marginTop: spacing.sm,
+    },
+    previewNotification: {
+      flexDirection: 'row',
+      backgroundColor: theme.background,
+      borderRadius: borderRadius.md,
+      padding: spacing.md,
+      alignItems: 'center',
+      gap: spacing.md,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    previewIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: theme.surface,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    previewContent: {
+      flex: 1,
+    },
+    previewTitle: {
+      ...typography.label,
+      color: theme.text.primary,
+      fontWeight: '600',
+    },
+    previewBody: {
+      ...typography.caption,
+      color: theme.text.secondary,
+      marginTop: 2,
+    },
+    previewCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      backgroundColor: theme.primary + '20',
+      padding: spacing.md,
+      borderRadius: borderRadius.md,
+      marginBottom: spacing.lg,
+    },
+    previewText: {
+      ...typography.body,
+      color: theme.text.primary,
+      fontWeight: '500',
+    },
+    testButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: spacing.sm,
+      backgroundColor: theme.surface,
+      paddingVertical: spacing.md,
+      borderRadius: borderRadius.md,
+      marginBottom: spacing.lg,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    testButtonText: {
+      ...typography.label,
+      color: theme.primary,
+      fontWeight: '600',
+    },
+    infoSection: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      backgroundColor: theme.surface,
+      padding: spacing.md,
+      borderRadius: borderRadius.md,
+      marginBottom: spacing.lg,
+    },
+    infoText: {
+      ...typography.caption,
+      color: theme.text.light,
+      flex: 1,
+    },
+    dangerButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: spacing.sm,
+      backgroundColor: theme.error + '10',
+      paddingVertical: spacing.md,
+      borderRadius: borderRadius.md,
+      borderWidth: 1,
+      borderColor: theme.error + '30',
+    },
+    dangerButtonText: {
+      ...typography.label,
+      color: theme.error,
+      fontWeight: '600',
+    },
+  });
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -167,7 +387,7 @@ export const NotificationSettingsScreen: React.FC = () => {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
+          <Ionicons name="arrow-back" size={24} color={theme.text.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Notifications</Text>
         <View style={styles.placeholder} />
@@ -178,14 +398,14 @@ export const NotificationSettingsScreen: React.FC = () => {
         <View style={styles.section}>
           <View style={styles.toggleRow}>
             <View style={styles.toggleInfo}>
-              <Ionicons name="notifications" size={24} color={colors.primary} />
+              <Ionicons name="notifications" size={24} color={theme.primary} />
               <Text style={styles.toggleLabel}>Period Reminders</Text>
             </View>
             <Switch
               value={isEnabled}
               onValueChange={handleToggleReminders}
-              trackColor={{ false: colors.border, true: colors.primary }}
-              thumbColor={colors.text.white}
+              trackColor={{ false: theme.border, true: theme.primary }}
+              thumbColor={theme.text.white}
               disabled={isLoading}
             />
           </View>
@@ -197,7 +417,7 @@ export const NotificationSettingsScreen: React.FC = () => {
         {/* Reminder Preview */}
         {isEnabled && nextReminderDate && (
           <View style={styles.previewCard}>
-            <Ionicons name="calendar" size={20} color={colors.text.white} />
+            <Ionicons name="calendar" size={20} color={theme.text.white} />
             <Text style={styles.previewText}>
               Next reminder: {format(nextReminderDate, 'MMMM d, yyyy')}
             </Text>
@@ -266,7 +486,7 @@ export const NotificationSettingsScreen: React.FC = () => {
           <View style={styles.previewBox}>
             <View style={styles.previewNotification}>
               <View style={styles.previewIcon}>
-                <Ionicons name="notifications" size={24} color={colors.primary} />
+                <Ionicons name="notifications" size={24} color={theme.primary} />
               </View>
               <View style={styles.previewContent}>
                 <Text style={styles.previewTitle}>FlowTrack Reminder</Text>
@@ -278,13 +498,13 @@ export const NotificationSettingsScreen: React.FC = () => {
 
         {/* Test Button */}
         <TouchableOpacity style={styles.testButton} onPress={handleTestNotification}>
-          <Ionicons name="notifications-outline" size={20} color={colors.primary} />
+          <Ionicons name="notifications-outline" size={20} color={theme.primary} />
           <Text style={styles.testButtonText}>Send Test Notification</Text>
         </TouchableOpacity>
 
         {/* Info Section */}
         <View style={styles.infoSection}>
-          <Ionicons name="information-circle" size={20} color={colors.text.light} />
+          <Ionicons name="information-circle" size={20} color={theme.text.light} />
           <Text style={styles.infoText}>
             Notifications are stored locally on your device. 
             We never share your cycle data with any servers.
@@ -315,7 +535,7 @@ export const NotificationSettingsScreen: React.FC = () => {
               );
             }}
           >
-            <Ionicons name="trash" size={20} color={colors.error} />
+            <Ionicons name="trash" size={20} color={theme.error} />
             <Text style={styles.dangerButtonText}>Disable All Reminders</Text>
           </TouchableOpacity>
         )}
@@ -323,222 +543,3 @@ export const NotificationSettingsScreen: React.FC = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.md,
-    backgroundColor: colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    ...typography.h2,
-    color: colors.text.primary,
-  },
-  placeholder: {
-    width: 40,
-  },
-  content: {
-    padding: spacing.lg,
-    paddingBottom: spacing.xxl,
-  },
-  section: {
-    marginBottom: spacing.xl,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  toggleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  toggleInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  toggleLabel: {
-    ...typography.h3,
-    color: colors.text.primary,
-  },
-  toggleDescription: {
-    ...typography.body,
-    color: colors.text.secondary,
-    marginTop: spacing.xs,
-  },
-  sectionTitle: {
-    ...typography.h3,
-    color: colors.text.primary,
-    marginBottom: spacing.xs,
-  },
-  sectionDescription: {
-    ...typography.caption,
-    color: colors.text.secondary,
-    marginBottom: spacing.md,
-  },
-  cycleLengthContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-    marginTop: spacing.sm,
-  },
-  cycleLengthButton: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  cycleLengthButtonActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  cycleLengthText: {
-    ...typography.body,
-    color: colors.text.secondary,
-  },
-  cycleLengthTextActive: {
-    color: colors.text.white,
-    fontWeight: '600',
-  },
-  advanceContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  advanceButton: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  advanceButtonActive: {
-    backgroundColor: colors.secondary,
-    borderColor: colors.secondary,
-  },
-  advanceText: {
-    ...typography.caption,
-    color: colors.text.secondary,
-  },
-  advanceTextActive: {
-    color: colors.text.white,
-    fontWeight: '600',
-  },
-  previewBox: {
-    marginTop: spacing.sm,
-  },
-  previewNotification: {
-    flexDirection: 'row',
-    backgroundColor: colors.background,
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
-    alignItems: 'center',
-    gap: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  previewIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.surface,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  previewContent: {
-    flex: 1,
-  },
-  previewTitle: {
-    ...typography.label,
-    color: colors.text.primary,
-    fontWeight: '600',
-  },
-  previewBody: {
-    ...typography.caption,
-    color: colors.text.secondary,
-    marginTop: 2,
-  },
-  previewCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    backgroundColor: colors.primary + '20',
-    padding: spacing.md,
-    borderRadius: borderRadius.md,
-    marginBottom: spacing.lg,
-  },
-  previewText: {
-    ...typography.body,
-    color: colors.text.primary,
-    fontWeight: '500',
-  },
-  testButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    backgroundColor: colors.surface,
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.md,
-    marginBottom: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  testButtonText: {
-    ...typography.label,
-    color: colors.primary,
-    fontWeight: '600',
-  },
-  infoSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    backgroundColor: colors.surface,
-    padding: spacing.md,
-    borderRadius: borderRadius.md,
-    marginBottom: spacing.lg,
-  },
-  infoText: {
-    ...typography.caption,
-    color: colors.text.light,
-    flex: 1,
-  },
-  dangerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    backgroundColor: colors.error + '10',
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.error + '30',
-  },
-  dangerButtonText: {
-    ...typography.label,
-    color: colors.error,
-    fontWeight: '600',
-  },
-});

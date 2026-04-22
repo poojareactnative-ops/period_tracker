@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { View, StyleSheet, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
 import { spacing, borderRadius, typography } from '../../theme/spacing';
 import { useCycleStore } from '../../store/useCycleStore';
 import { format, parseISO } from 'date-fns';
@@ -11,6 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import { calculateSmartPredictions } from '../../utils/smartCycleEngin';
 
 export const CalendarScreen: React.FC = () => {
+  const { theme } = useTheme();
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const { cycles, logs } = useCycleStore();
   const navigation = useNavigation<any>();
@@ -28,7 +29,7 @@ export const CalendarScreen: React.FC = () => {
     marks[today] = {
       ...(marks[today] || {}),
       marked: true,
-      dotColor: colors.primary,
+      dotColor: theme.primary,
     };
 
     cycles.forEach((cycle) => {
@@ -44,7 +45,7 @@ export const CalendarScreen: React.FC = () => {
         marks[dateKey] = {
           ...(marks[dateKey] || {}),
           selected: true,
-          selectedColor: colors.period,
+          selectedColor: theme.period,
           selectedTextColor: 'white',
         };
         cursor.setDate(cursor.getDate() + 1);
@@ -56,14 +57,14 @@ export const CalendarScreen: React.FC = () => {
       marks[log.date] = {
         ...(marks[log.date] || {}),
         marked: true,
-        dotColor: colors.primary,
+        dotColor: theme.primary,
       };
     });
 
     marks[selectedDate] = {
       ...(marks[selectedDate] || {}),
       selected: true,
-      selectedColor: marks[selectedDate]?.selectedColor || colors.primary,
+      selectedColor: marks[selectedDate]?.selectedColor || theme.primary,
       selectedTextColor: 'white',
     };
 
@@ -102,17 +103,17 @@ export const CalendarScreen: React.FC = () => {
             theme={{
               backgroundColor: 'white',
               calendarBackground: 'white',
-              textSectionTitleColor: colors.text.light,
-              selectedDayBackgroundColor: colors.primary,
+              textSectionTitleColor: theme.text.light,
+              selectedDayBackgroundColor: theme.primary,
               selectedDayTextColor: '#ffffff',
-              todayTextColor: colors.primary,
-              dayTextColor: colors.text.primary,
+              todayTextColor: theme.primary,
+              dayTextColor: theme.text.primary,
               textDisabledColor: '#d9e1e8',
-              dotColor: colors.primary,
+              dotColor: theme.primary,
               selectedDotColor: '#ffffff',
-              arrowColor: colors.primary,
-              monthTextColor: colors.text.primary,
-              indicatorColor: colors.primary,
+              arrowColor: theme.primary,
+              monthTextColor: theme.text.primary,
+              indicatorColor: theme.primary,
               textDayFontWeight: '500',
               textMonthFontWeight: '700',
               textDayHeaderFontWeight: '600',
@@ -151,15 +152,15 @@ export const CalendarScreen: React.FC = () => {
           <Text style={styles.sectionTitle}>Legend</Text>
           <View style={styles.legendRow}>
             <View style={styles.legendItem}>
-              <View style={[styles.dot, { backgroundColor: colors.period }]} />
+              <View style={[styles.dot, { backgroundColor: theme.period }]} />
               <Text style={styles.legendText}>Period</Text>
             </View>
             <View style={styles.legendItem}>
-              <View style={[styles.dot, { backgroundColor: colors.ovulation }]} />
+              <View style={[styles.dot, { backgroundColor: theme.ovulation }]} />
               <Text style={styles.legendText}>Ovulation</Text>
             </View>
             <View style={styles.legendItem}>
-              <View style={[styles.dot, { backgroundColor: colors.primary, opacity: 0.3 }]} />
+              <View style={[styles.dot, { backgroundColor: theme.primary, opacity: 0.3 }]} />
               <Text style={styles.legendText}>Fertile</Text>
             </View>
           </View>
@@ -212,7 +213,7 @@ export const CalendarScreen: React.FC = () => {
               </View>
             )}
             <TouchableOpacity style={styles.addLogButton} onPress={() => navigation.navigate('Log')}>
-              <Plus color={colors.primary} size={20} />
+              <Plus color={theme.primary} size={20} />
               <Text style={styles.addLogText}>Add Log</Text>
             </TouchableOpacity>
           </GradientBackground>
@@ -222,190 +223,182 @@ export const CalendarScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    paddingTop: 60,
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
-    backgroundColor: 'white',
-  },
-  headerTitle: {
-    ...typography.h2,
-    color: colors.text.primary,
-  },
-  scrollContent: {
-    padding: spacing.lg,
-  },
-  calendarContainer: {
-    backgroundColor: 'white',
-    borderRadius: borderRadius.xl,
-    padding: spacing.sm,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 15,
-    elevation: 4,
-    marginBottom: spacing.xl,
-  },
-  legendContainer: {
-    marginBottom: spacing.xl,
-  },
-  sectionTitle: {
-    ...typography.h3,
-    color: colors.text.primary,
-    marginBottom: spacing.md,
-  },
-  legendRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: spacing.lg,
-  },
-  dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 8,
-  },
-  legendText: {
-    ...typography.caption,
-    color: colors.text.secondary,
-    fontWeight: '600',
-  },
-  logSection: {
-    marginBottom: 40,
-  },
-  sectionHeader: {
-    marginBottom: spacing.md,
-  },
-  logCard: {
-    padding: spacing.xl,
-    borderRadius: borderRadius.lg,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  logPlaceholder: {
-    ...typography.body,
-    color: colors.text.light,
-    marginBottom: spacing.md,
-    textAlign: 'center',
-  },
-  logsList: {
-    width: '100%',
-    marginBottom: spacing.md,
-  },
-  logItem: {
-    width: '100%',
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-  },
-  logMood: {
-    ...typography.label,
-    color: colors.text.primary,
-    marginBottom: spacing.xs,
-  },
-  logSymptoms: {
-    ...typography.caption,
-    color: colors.text.secondary,
-  },
-  logNotes: {
-    ...typography.caption,
-    color: colors.text.secondary,
-    marginTop: spacing.xs,
-  },
-  addLogButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.full,
-    borderWidth: 1,
-    borderColor: colors.primary,
-  },
-  addLogText: {
-    ...typography.label,
-    color: colors.primary,
-    marginLeft: spacing.xs,
-  },
-  calculatorContainer: {
-    marginBottom: spacing.xl,
-  },
-
-  calculatorCard: {
-    backgroundColor: 'white',
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
-  },
-
-  calcLabel: {
-    ...typography.caption,
-    color: colors.text.secondary,
-    marginBottom: spacing.md,
-    textAlign: 'center',
-  },
-
-  calcRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-
-  calcBox: {
-    flex: 1,
-    backgroundColor: colors.background,
-    padding: spacing.md,
-    borderRadius: borderRadius.md,
-    marginHorizontal: 4,
-    alignItems: 'center',
-  },
-
-  calcTitle: {
-    ...typography.caption,
-    color: colors.text.secondary,
-    marginBottom: 4,
-  },
-
-  calcDate: {
-    ...typography.h3,
-    color: colors.primary,
-    fontWeight: '700',
-  },
-  smartCard: {
-    backgroundColor: 'white',
-    padding: spacing.lg,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: spacing.xl,
-  },
-
-  smartText: {
-    fontSize: 16,
-    marginBottom: 6,
-    color: colors.text.primary,
-  },
-
-  confidence: {
-    marginTop: 10,
-    color: colors.primary,
-    fontWeight: '700',
-  },
-});
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    header: {
+      paddingTop: 60,
+      paddingHorizontal: spacing.lg,
+      paddingBottom: spacing.md,
+      backgroundColor: 'white',
+    },
+    headerTitle: {
+      ...typography.h2,
+      color: theme.text.primary,
+    },
+    scrollContent: {
+      padding: spacing.lg,
+    },
+    calendarContainer: {
+      backgroundColor: 'white',
+      borderRadius: borderRadius.xl,
+      padding: spacing.sm,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.05,
+      shadowRadius: 15,
+      elevation: 4,
+      marginBottom: spacing.xl,
+    },
+    legendContainer: {
+      marginBottom: spacing.xl,
+    },
+    sectionTitle: {
+      ...typography.h3,
+      color: theme.text.primary,
+      marginBottom: spacing.md,
+    },
+    legendRow: {
+      flexDirection: 'row',
+      justifyContent: 'flex-start',
+    },
+    legendItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginRight: spacing.lg,
+    },
+    dot: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      marginRight: 8,
+    },
+    legendText: {
+      ...typography.caption,
+      color: theme.text.secondary,
+      fontWeight: '600',
+    },
+    logSection: {
+      marginBottom: 40,
+    },
+    sectionHeader: {
+      marginBottom: spacing.md,
+    },
+    logCard: {
+      padding: spacing.xl,
+      borderRadius: borderRadius.lg,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    logPlaceholder: {
+      ...typography.body,
+      color: theme.text.light,
+      marginBottom: spacing.md,
+      textAlign: 'center',
+    },
+    logsList: {
+      width: '100%',
+      marginBottom: spacing.md,
+    },
+    logItem: {
+      width: '100%',
+      backgroundColor: 'white',
+      borderWidth: 1,
+      borderColor: theme.border,
+      borderRadius: borderRadius.md,
+      padding: spacing.md,
+      marginBottom: spacing.sm,
+    },
+    logMood: {
+      ...typography.label,
+      color: theme.text.primary,
+      marginBottom: spacing.xs,
+    },
+    logSymptoms: {
+      ...typography.caption,
+      color: theme.text.secondary,
+    },
+    logNotes: {
+      ...typography.caption,
+      color: theme.text.secondary,
+      marginTop: spacing.xs,
+    },
+    addLogButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: 'white',
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.sm,
+      borderRadius: borderRadius.full,
+      borderWidth: 1,
+      borderColor: theme.primary,
+    },
+    addLogText: {
+      ...typography.label,
+      color: theme.primary,
+      marginLeft: spacing.xs,
+    },
+    calculatorContainer: {
+      marginBottom: spacing.xl,
+    },
+    calculatorCard: {
+      backgroundColor: 'white',
+      borderRadius: borderRadius.lg,
+      padding: spacing.lg,
+      borderWidth: 1,
+      borderColor: theme.border,
+      shadowColor: '#000',
+      shadowOpacity: 0.05,
+      shadowRadius: 10,
+      elevation: 3,
+    },
+    calcLabel: {
+      ...typography.caption,
+      color: theme.text.secondary,
+      marginBottom: spacing.md,
+      textAlign: 'center',
+    },
+    calcRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    calcBox: {
+      flex: 1,
+      backgroundColor: theme.background,
+      padding: spacing.md,
+      borderRadius: borderRadius.md,
+      marginHorizontal: 4,
+      alignItems: 'center',
+    },
+    calcTitle: {
+      ...typography.caption,
+      color: theme.text.secondary,
+      marginBottom: 4,
+    },
+    calcDate: {
+      ...typography.h3,
+      color: theme.primary,
+      fontWeight: '700',
+    },
+    smartCard: {
+      backgroundColor: 'white',
+      padding: spacing.lg,
+      borderRadius: borderRadius.lg,
+      borderWidth: 1,
+      borderColor: theme.border,
+      marginBottom: spacing.xl,
+    },
+    smartText: {
+      fontSize: 16,
+      marginBottom: 6,
+      color: theme.text.primary,
+    },
+    confidence: {
+      marginTop: 10,
+      color: theme.primary,
+      fontWeight: '700',
+    },
+  });

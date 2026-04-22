@@ -6,20 +6,22 @@ import { CalendarScreen } from '../screens/Calendar/CalendarScreen';
 import { LogEntryScreen } from '../screens/Log/LogEntryScreen';
 import { InsightsScreen } from '../screens/Insights/InsightsScreen';
 import { ProfileNavigator } from './ProfileNavigator';
-import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 import { HomeNavigator } from './HomeNavigator';
 
 const Tab = createBottomTabNavigator();
 
 export const TabNavigator = () => {
+  const { theme } = useTheme();
+
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.text.light,
+        tabBarActiveTintColor: theme.primary,
+        tabBarInactiveTintColor: theme.text.light,
         tabBarStyle: {
-          backgroundColor: colors.background,
+          backgroundColor: theme.background,
           borderTopWidth: 0,
           elevation: 10,
           shadowColor: '#000',

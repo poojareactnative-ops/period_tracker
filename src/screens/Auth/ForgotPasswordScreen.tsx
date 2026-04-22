@@ -15,13 +15,13 @@ import { ArrowLeft, Mail } from 'lucide-react-native';
 import { GradientBackground } from '../../components/GradientBackground';
 import { CustomButton } from '../../components/CustomButton';
 import { auth } from '../../services/firebase';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
 import { spacing, borderRadius, typography } from '../../theme/spacing';
 
 export const ForgotPasswordScreen: React.FC = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-
+  const { theme } = useTheme();
   const navigation = useNavigation<any>();
 
   const handleResetPassword = async () => {
@@ -71,26 +71,26 @@ export const ForgotPasswordScreen: React.FC = () => {
     <GradientBackground variant="soft">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.container}
+        style={styles(theme).container}
       >
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <ArrowLeft size={20} color={colors.text.primary} />
-          <Text style={styles.backText}>Back</Text>
+        <TouchableOpacity style={styles(theme).backButton} onPress={() => navigation.goBack()}>
+          <ArrowLeft size={20} color={theme.text.primary} />
+          <Text style={styles(theme).backText}>Back</Text>
         </TouchableOpacity>
 
-        <View style={styles.header}>
-          <View style={styles.logoCircle}>
-            <Mail color={colors.primary} size={28} />
+        <View style={styles(theme).header}>
+          <View style={styles(theme).logoCircle}>
+            <Mail color={theme.primary} size={28} />
           </View>
-          <Text style={styles.title}>Forgot Password</Text>
-          <Text style={styles.subtitle}>Enter your email and we will send a reset link.</Text>
+          <Text style={styles(theme).title}>Forgot Password</Text>
+          <Text style={styles(theme).subtitle}>Enter your email and we will send a reset link.</Text>
         </View>
 
-        <View style={styles.form}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email Address</Text>
+        <View style={styles(theme).form}>
+          <View style={styles(theme).inputContainer}>
+            <Text style={styles(theme).label}>Email Address</Text>
             <TextInput
-              style={styles.input}
+              style={styles(theme).input}
               placeholder="hello@flowtrack.com"
               value={email}
               onChangeText={setEmail}
@@ -107,7 +107,7 @@ export const ForgotPasswordScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
     padding: spacing.xl,
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   },
   backText: {
     ...typography.body,
-    color: colors.text.primary,
+    color: theme.text.primary,
     marginLeft: spacing.xs,
   },
   header: {
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
-    shadowColor: colors.primary,
+    shadowColor: theme.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -143,11 +143,11 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.h2,
-    color: colors.text.primary,
+    color: theme.text.primary,
   },
   subtitle: {
     ...typography.body,
-    color: colors.text.secondary,
+    color: theme.text.secondary,
     marginTop: 4,
     textAlign: 'center',
   },
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   },
   label: {
     ...typography.label,
-    color: colors.text.primary,
+    color: theme.text.primary,
     marginBottom: spacing.sm,
   },
   input: {
@@ -169,6 +169,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: theme.border,
   },
 });

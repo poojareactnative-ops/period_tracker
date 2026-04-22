@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, ViewProps } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 
 interface Props extends ViewProps {
   children?: React.ReactNode;
@@ -9,7 +9,8 @@ interface Props extends ViewProps {
 }
 
 export const GradientBackground: React.FC<Props> = ({ children, variant = 'pink', style }) => {
-  const gradientColors = colors.gradients[variant] || colors.gradients.pink;
+  const { theme } = useTheme();
+  const gradientColors = theme.gradients[variant] || theme.gradients.pink;
 
   return (
     <LinearGradient

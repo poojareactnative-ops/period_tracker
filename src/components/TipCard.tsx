@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 import { spacing, borderRadius, typography } from '../theme/spacing';
 import { Lightbulb } from 'lucide-react-native';
 
@@ -9,6 +9,8 @@ interface Props {
 }
 
 export const TipCard: React.FC<Props> = ({ day = 1 }) => {
+  const { theme } = useTheme();
+  
   const getTip = (d: number) => {
     if (d >= 1 && d <= 5) return {
       title: "Flow Phase",
@@ -30,10 +32,51 @@ export const TipCard: React.FC<Props> = ({ day = 1 }) => {
 
   const tip = getTip(day);
 
+  const styles = StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      backgroundColor: theme.surface,
+      padding: spacing.md,
+      borderRadius: borderRadius.lg,
+      alignItems: 'center',
+      marginBottom: spacing.xl,
+      borderWidth: 1,
+      borderColor: `${theme.primary}33`,
+    },
+    iconBox: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'white',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: spacing.md,
+      shadowColor: theme.primary,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    content: {
+      flex: 1,
+    },
+    title: {
+      ...typography.caption,
+      fontWeight: '700',
+      color: theme.primary,
+      marginBottom: 2,
+    },
+    text: {
+      ...typography.caption,
+      color: theme.text.secondary,
+      lineHeight: 18,
+    },
+  });
+
   return (
     <View style={styles.container}>
       <View style={styles.iconBox}>
-        <Lightbulb color={colors.primary} size={20} />
+        <Lightbulb color={theme.primary} size={20} />
       </View>
       <View style={styles.content}>
         <Text style={styles.title}>{tip.title} Tip</Text>
@@ -42,44 +85,3 @@ export const TipCard: React.FC<Props> = ({ day = 1 }) => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    backgroundColor: '#FFF8F9',
-    padding: spacing.md,
-    borderRadius: borderRadius.lg,
-    alignItems: 'center',
-    marginBottom: spacing.xl,
-    borderWidth: 1,
-    borderColor: '#F8BBD033',
-  },
-  iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'white',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.md,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  content: {
-    flex: 1,
-  },
-  title: {
-    ...typography.caption,
-    fontWeight: '700',
-    color: colors.primary,
-    marginBottom: 2,
-  },
-  text: {
-    ...typography.caption,
-    color: colors.text.secondary,
-    lineHeight: 18,
-  },
-});
