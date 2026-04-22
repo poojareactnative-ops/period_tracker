@@ -16,8 +16,6 @@ import {
 } from 'lucide-react-native';
 import { generateAdvancedInsights } from '../../utils/advancedInsights';
 
-const { width } = Dimensions.get('window');
-
 export const InsightsScreen: React.FC = () => {
   const { theme } = useTheme();
   const { cycles, avgCycleLength, avgPeriodDuration } = useCycleStore();

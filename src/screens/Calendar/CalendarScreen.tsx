@@ -22,6 +22,7 @@ export const CalendarScreen: React.FC = () => {
   );
 
   const predictions = calculateSmartPredictions(cycles);
+  
   const markedDates = useMemo(() => {
     const marks: any = {};
 
@@ -46,7 +47,7 @@ export const CalendarScreen: React.FC = () => {
           ...(marks[dateKey] || {}),
           selected: true,
           selectedColor: theme.period,
-          selectedTextColor: 'white',
+          selectedTextColor: theme.text.white,
         };
         cursor.setDate(cursor.getDate() + 1);
       }
@@ -65,11 +66,11 @@ export const CalendarScreen: React.FC = () => {
       ...(marks[selectedDate] || {}),
       selected: true,
       selectedColor: marks[selectedDate]?.selectedColor || theme.primary,
-      selectedTextColor: 'white',
+      selectedTextColor: theme.text.white,
     };
 
     return marks;
-  }, [cycles, logs, selectedDate]);
+  }, [cycles, logs, selectedDate, theme]);
 
   const periodPredictions: any = useMemo(() => {
     if (!selectedDate) return null;
@@ -88,141 +89,6 @@ export const CalendarScreen: React.FC = () => {
     };
   }, [selectedDate]);
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>🌸 When’s My Next Period?</Text>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.calendarContainer}>
-          <Calendar
-            current={selectedDate}
-            onDayPress={day => setSelectedDate(day.dateString)}
-            markedDates={markedDates}
-            theme={{
-              backgroundColor: 'white',
-              calendarBackground: 'white',
-              textSectionTitleColor: theme.text.light,
-              selectedDayBackgroundColor: theme.primary,
-              selectedDayTextColor: '#ffffff',
-              todayTextColor: theme.primary,
-              dayTextColor: theme.text.primary,
-              textDisabledColor: '#d9e1e8',
-              dotColor: theme.primary,
-              selectedDotColor: '#ffffff',
-              arrowColor: theme.primary,
-              monthTextColor: theme.text.primary,
-              indicatorColor: theme.primary,
-              textDayFontWeight: '500',
-              textMonthFontWeight: '700',
-              textDayHeaderFontWeight: '600',
-              textDayFontSize: 16,
-              textMonthFontSize: 20,
-              textDayHeaderFontSize: 14,
-            }}
-          />
-        </View>
-        <View style={styles.calculatorContainer}>
-          <Text style={styles.sectionTitle}>Period Calculator</Text>
-
-          <View style={styles.calculatorCard}>
-            <Text style={styles.calcLabel}>
-              Based on: {format(parseISO(selectedDate), 'MMM d, yyyy')}
-            </Text>
-
-            <View style={styles.calcRow}>
-              <View style={styles.calcBox}>
-                <Text style={styles.calcTitle}>21 Day Cycle</Text>
-                <Text style={styles.calcDate}>
-                  {format(parseISO(periodPredictions.next21), 'MMM d')}
-                </Text>
-              </View>
-
-              <View style={styles.calcBox}>
-                <Text style={styles.calcTitle}>28 Day Cycle</Text>
-                <Text style={styles.calcDate}>
-                  {format(parseISO(periodPredictions.next28), 'MMM d')}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-        <View style={styles.legendContainer}>
-          <Text style={styles.sectionTitle}>Legend</Text>
-          <View style={styles.legendRow}>
-            <View style={styles.legendItem}>
-              <View style={[styles.dot, { backgroundColor: theme.period }]} />
-              <Text style={styles.legendText}>Period</Text>
-            </View>
-            <View style={styles.legendItem}>
-              <View style={[styles.dot, { backgroundColor: theme.ovulation }]} />
-              <Text style={styles.legendText}>Ovulation</Text>
-            </View>
-            <View style={styles.legendItem}>
-              <View style={[styles.dot, { backgroundColor: theme.primary, opacity: 0.3 }]} />
-              <Text style={styles.legendText}>Fertile</Text>
-            </View>
-          </View>
-        </View>
-        <View style={styles.smartCard}>
-          <Text style={styles.sectionTitle}>Smart Prediction</Text>
-
-          {predictions ? (
-            <>
-              <Text style={styles.smartText}>
-                Next Period: {format(predictions.nextPeriodDate, 'MMM d')}
-              </Text>
-
-              <Text style={styles.smartText}>
-                Ovulation: {format(predictions.ovulationDate, 'MMM d')}
-              </Text>
-
-              <Text style={styles.smartText}>
-                Fertile: {format(predictions.fertileWindow.start, 'MMM d')} -{' '}
-                {format(predictions.fertileWindow.end, 'MMM d')}
-              </Text>
-
-              <Text style={styles.confidence}>
-                Accuracy: {predictions.confidence}%
-              </Text>
-            </>
-          ) : (
-            <Text>Add more cycle data for predictions</Text>
-          )}
-        </View>
-        <View style={styles.logSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Details for {format(parseISO(selectedDate), 'MMMM d')}</Text>
-          </View>
-
-          <GradientBackground variant="soft" style={styles.logCard}>
-            {logsForSelectedDate.length === 0 ? (
-              <Text style={styles.logPlaceholder}>No logs for this day yet.</Text>
-            ) : (
-              <View style={styles.logsList}>
-                {logsForSelectedDate.map((log) => (
-                  <View key={log.id} style={styles.logItem}>
-                    <Text style={styles.logMood}>Mood: {log.mood}</Text>
-                    <Text style={styles.logSymptoms}>
-                      Symptoms: {log.symptoms.length > 0 ? log.symptoms.join(', ') : 'None'}
-                    </Text>
-                    {log.notes ? <Text style={styles.logNotes}>Notes: {log.notes}</Text> : null}
-                  </View>
-                ))}
-              </View>
-            )}
-            <TouchableOpacity style={styles.addLogButton} onPress={() => navigation.navigate('Log')}>
-              <Plus color={theme.primary} size={20} />
-              <Text style={styles.addLogText}>Add Log</Text>
-            </TouchableOpacity>
-          </GradientBackground>
-        </View>
-      </ScrollView>
-    </View>
-  );
-};
-
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -232,7 +98,7 @@ export const CalendarScreen: React.FC = () => {
       paddingTop: 60,
       paddingHorizontal: spacing.lg,
       paddingBottom: spacing.md,
-      backgroundColor: 'white',
+      backgroundColor: theme.surface,
     },
     headerTitle: {
       ...typography.h2,
@@ -242,7 +108,7 @@ export const CalendarScreen: React.FC = () => {
       padding: spacing.lg,
     },
     calendarContainer: {
-      backgroundColor: 'white',
+      backgroundColor: theme.surface,
       borderRadius: borderRadius.xl,
       padding: spacing.sm,
       shadowColor: '#000',
@@ -305,7 +171,7 @@ export const CalendarScreen: React.FC = () => {
     },
     logItem: {
       width: '100%',
-      backgroundColor: 'white',
+      backgroundColor: theme.surface,
       borderWidth: 1,
       borderColor: theme.border,
       borderRadius: borderRadius.md,
@@ -329,7 +195,7 @@ export const CalendarScreen: React.FC = () => {
     addLogButton: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: 'white',
+      backgroundColor: theme.surface,
       paddingHorizontal: spacing.lg,
       paddingVertical: spacing.sm,
       borderRadius: borderRadius.full,
@@ -345,7 +211,7 @@ export const CalendarScreen: React.FC = () => {
       marginBottom: spacing.xl,
     },
     calculatorCard: {
-      backgroundColor: 'white',
+      backgroundColor: theme.surface,
       borderRadius: borderRadius.lg,
       padding: spacing.lg,
       borderWidth: 1,
@@ -384,7 +250,7 @@ export const CalendarScreen: React.FC = () => {
       fontWeight: '700',
     },
     smartCard: {
-      backgroundColor: 'white',
+      backgroundColor: theme.surface,
       padding: spacing.lg,
       borderRadius: borderRadius.lg,
       borderWidth: 1,
@@ -402,3 +268,142 @@ export const CalendarScreen: React.FC = () => {
       fontWeight: '700',
     },
   });
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>🌸 When's My Next Cycle?</Text>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.calendarContainer}>
+          <Calendar
+            current={selectedDate}
+            onDayPress={day => setSelectedDate(day.dateString)}
+            markedDates={markedDates}
+            theme={{
+              backgroundColor: theme.surface,
+              calendarBackground: theme.surface,
+              textSectionTitleColor: theme.text.light,
+              selectedDayBackgroundColor: theme.primary,
+              selectedDayTextColor: theme.text.white,
+              todayTextColor: theme.primary,
+              dayTextColor: theme.text.primary,
+              textDisabledColor: theme.text.light,
+              dotColor: theme.primary,
+              selectedDotColor: theme.text.white,
+              arrowColor: theme.primary,
+              monthTextColor: theme.text.primary,
+              indicatorColor: theme.primary,
+              textDayFontWeight: '500',
+              textMonthFontWeight: '700',
+              textDayHeaderFontWeight: '600',
+              textDayFontSize: 16,
+              textMonthFontSize: 20,
+              textDayHeaderFontSize: 14,
+            }}
+          />
+        </View>
+
+        <View style={styles.calculatorContainer}>
+          <Text style={styles.sectionTitle}>Period Calculator</Text>
+
+          <View style={styles.calculatorCard}>
+            <Text style={styles.calcLabel}>
+              Based on: {format(parseISO(selectedDate), 'MMM d, yyyy')}
+            </Text>
+
+            <View style={styles.calcRow}>
+              <View style={styles.calcBox}>
+                <Text style={styles.calcTitle}>21 Day Cycle</Text>
+                <Text style={styles.calcDate}>
+                  {periodPredictions ? format(parseISO(periodPredictions.next21), 'MMM d') : '--'}
+                </Text>
+              </View>
+
+              <View style={styles.calcBox}>
+                <Text style={styles.calcTitle}>28 Day Cycle</Text>
+                <Text style={styles.calcDate}>
+                  {periodPredictions ? format(parseISO(periodPredictions.next28), 'MMM d') : '--'}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.legendContainer}>
+          <Text style={styles.sectionTitle}>Legend</Text>
+          <View style={styles.legendRow}>
+            <View style={styles.legendItem}>
+              <View style={[styles.dot, { backgroundColor: theme.period }]} />
+              <Text style={styles.legendText}>Period</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View style={[styles.dot, { backgroundColor: theme.ovulation }]} />
+              <Text style={styles.legendText}>Ovulation</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View style={[styles.dot, { backgroundColor: theme.primary, opacity: 0.3 }]} />
+              <Text style={styles.legendText}>Fertile</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.smartCard}>
+          <Text style={styles.sectionTitle}>Smart Prediction</Text>
+
+          {predictions ? (
+            <>
+              <Text style={styles.smartText}>
+                Next Period: {format(predictions.nextPeriodDate, 'MMM d')}
+              </Text>
+
+              <Text style={styles.smartText}>
+                Ovulation: {format(predictions.ovulationDate, 'MMM d')}
+              </Text>
+
+              <Text style={styles.smartText}>
+                Fertile: {format(predictions.fertileWindow.start, 'MMM d')} -{' '}
+                {format(predictions.fertileWindow.end, 'MMM d')}
+              </Text>
+
+              <Text style={styles.confidence}>
+                Accuracy: {predictions.confidence}%
+              </Text>
+            </>
+          ) : (
+            <Text style={{ color: theme.text.secondary }}>Add more cycle data for predictions</Text>
+          )}
+        </View>
+
+        <View style={styles.logSection}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Details for {format(parseISO(selectedDate), 'MMMM d')}</Text>
+          </View>
+
+          <GradientBackground variant="soft" style={styles.logCard}>
+            {logsForSelectedDate.length === 0 ? (
+              <Text style={styles.logPlaceholder}>No logs for this day yet.</Text>
+            ) : (
+              <View style={styles.logsList}>
+                {logsForSelectedDate.map((log) => (
+                  <View key={log.id} style={styles.logItem}>
+                    <Text style={styles.logMood}>Mood: {log.mood}</Text>
+                    <Text style={styles.logSymptoms}>
+                      Symptoms: {log.symptoms.length > 0 ? log.symptoms.join(', ') : 'None'}
+                    </Text>
+                    {log.notes ? <Text style={styles.logNotes}>Notes: {log.notes}</Text> : null}
+                  </View>
+                ))}
+              </View>
+            )}
+            <TouchableOpacity style={styles.addLogButton} onPress={() => navigation.navigate('Log')}>
+              <Plus color={theme.primary} size={20} />
+              <Text style={styles.addLogText}>Add Log</Text>
+            </TouchableOpacity>
+          </GradientBackground>
+        </View>
+      </ScrollView>
+    </View>
+  );
+};
