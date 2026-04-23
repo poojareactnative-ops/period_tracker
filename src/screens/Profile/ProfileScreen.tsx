@@ -62,9 +62,22 @@ export const ProfileScreen: React.FC = () => {
     if (value) {
       const granted = await NotificationService.requestPermissions();
       if (granted && cycles.length > 0) {
-        const lastCycle = cycles[cycles.length - 1];
-        await NotificationService.schedulePeriodReminder(lastCycle.startDate);
-        Alert.alert('Notifications Enabled', 'We will remind you 28 days after your last period start date.');
+        const latestCycle = [...cycles]
+          .filter((cycle) => Boolean(cycle.startDate))
+          .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+          .slice(-1)[0];
+
+        if (!latestCycle?.startDate) {
+          setNotifications(false);
+          Alert.alert('No Cycle Data', 'Please log a cycle before enabling notifications.');
+          return;
+        }
+
+        await NotificationService.scheduleMissedPeriodReminders(latestCycle.startDate);
+        Alert.alert(
+          'Notifications Enabled',
+          'We will remind you if your period is still missing after 21 and 28 days.'
+        );
       } else if (!granted) {
         setNotifications(false);
         Alert.alert('Permission Denied', 'Please enable notifications in your device settings.');

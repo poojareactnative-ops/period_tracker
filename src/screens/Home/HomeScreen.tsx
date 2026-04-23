@@ -6,6 +6,7 @@ import { useTheme } from '../../theme/ThemeContext';
 import { spacing, borderRadius, typography } from '../../theme/spacing';
 import { useCycleStore } from '../../store/useCycleStore';
 import { useUserStore } from '../../store/useUserStore';
+import { useNotificationStore } from '../../store/useNotificationStore';
 import { calculatePredictions, getStatusMessage, calculateLateEarly, analyzeCyclePatterns, getHealthGuidance } from '../../utils/cycleLogic';
 import { Bell, Settings, Plus, Smile, Frown, Meh } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -16,6 +17,10 @@ export const HomeScreen: React.FC = () => {
   const { theme } = useTheme();
   const { cycles } = useCycleStore();
   const { user } = useUserStore();
+  const badgeCount = useNotificationStore((state) => state.notificationBadgeCount);
+  const clearNotificationBadgeCount = useNotificationStore(
+    (state) => state.clearNotificationBadgeCount
+  );
   const navigation = useNavigation<any>();
 
   const predictions = calculatePredictions(cycles);
@@ -60,6 +65,24 @@ export const HomeScreen: React.FC = () => {
       backgroundColor: theme.surface,
       justifyContent: 'center',
       alignItems: 'center',
+      position: 'relative',
+    },
+    badge: {
+      position: 'absolute',
+      top: -4,
+      right: -4,
+      minWidth: 18,
+      height: 18,
+      paddingHorizontal: 4,
+      borderRadius: 9,
+      backgroundColor: theme.error,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    badgeText: {
+      color: theme.text.white,
+      fontSize: 10,
+      fontWeight: '700',
     },
     mainCard: {
       borderRadius: borderRadius.xl,
@@ -216,8 +239,19 @@ export const HomeScreen: React.FC = () => {
             <Text style={styles.date}>{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</Text>
           </View>
           <View style={styles.headerIcons}>
-            <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('NotificationSettings')}>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={async () => {
+                await clearNotificationBadgeCount();
+                navigation.navigate('NotificationSettings');
+              }}
+            >
               <Bell color={theme.text.primary} size={24} />
+              {badgeCount > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{badgeCount > 99 ? '99+' : badgeCount}</Text>
+                </View>
+              )}
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Profile')}>
               <Settings color={theme.text.primary} size={24} />

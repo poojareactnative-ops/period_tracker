@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,95 +7,71 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
-  Platform,
 } from 'react-native';
-import { useTheme } from '../../theme/ThemeContext';
-import { spacing, borderRadius, typography } from '../../theme/spacing';
+import * as Notifications from 'expo-notifications';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import * as Notifications from 'expo-notifications';
-import { requestPermissions, schedulePeriodReminder, cancelReminders } from '../../services/notificationService';
-import { useCycleStore } from '../../store/useCycleStore';
 import { format } from 'date-fns';
+
+import { useTheme } from '../../theme/ThemeContext';
+import { spacing, borderRadius, typography } from '../../theme/spacing';
+import { useCycleStore } from '../../store/useCycleStore';
+import {
+  cancelReminders,
+  getAllScheduledNotifications,
+  getMissedPeriodReminderDates,
+  requestPermissions,
+  scheduleMissedPeriodReminders,
+} from '../../services/notificationService';
 
 export const NotificationSettingsScreen: React.FC = () => {
   const { theme } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const { cycles } = useCycleStore();
-  
+
   const [isEnabled, setIsEnabled] = useState(false);
   const [hasPermission, setHasPermission] = useState(false);
   const [nextReminderDate, setNextReminderDate] = useState<Date | null>(null);
-  const [selectedDays, setSelectedDays] = useState<number[]>([28]);
-  const [selectedAdvanceDays, setSelectedAdvanceDays] = useState(1);
+  const [selectedDays, setSelectedDays] = useState<number[]>([21, 28]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Get last period start date
   const getLastPeriodStart = () => {
-    const completedCycles = cycles.filter(c => c.endDate);
-    if (completedCycles.length === 0) return null;
-    const lastCycle = completedCycles[completedCycles.length - 1];
-    return lastCycle.startDate ? new Date(lastCycle.startDate) : null;
-  };
+    const validCycles = [...cycles]
+      .filter((cycle) => Boolean(cycle.startDate))
+      .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
 
-  // Load notification status on mount
-  useEffect(() => {
-    loadNotificationStatus();
-  }, []);
+    if (validCycles.length === 0) return null;
+
+    const lastCycle = validCycles[validCycles.length - 1];
+    return new Date(lastCycle.startDate);
+  };
 
   const loadNotificationStatus = async () => {
     const permission = await requestPermissions();
     setHasPermission(permission);
-    
-    // Check if there are any scheduled notifications
-    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-    setIsEnabled(scheduled.length > 0);
-    
-    if (scheduled.length > 0 && scheduled[0].trigger) {
-      // @ts-ignore
-      const triggerDate = scheduled[0].trigger?.date;
-      if (triggerDate) {
-        setNextReminderDate(new Date(triggerDate));
-      }
-    }
+
+    const scheduled = await getAllScheduledNotifications();
+    const reminderDates = scheduled
+      .filter(
+        (notif) =>
+          notif.content.data?.type === 'missed_period_reminder' ||
+          notif.content.data?.type === 'period_reminder'
+      )
+      .map((notif) => new Date((notif.trigger as any)?.date))
+      .filter((date) => !Number.isNaN(date.getTime()))
+      .sort((a, b) => a.getTime() - b.getTime());
+
+    setIsEnabled(reminderDates.length > 0);
+    setNextReminderDate(reminderDates[0] ?? null);
   };
 
-  const handleToggleReminders = async (value: boolean) => {
-    if (value && !hasPermission) {
-      Alert.alert(
-        'Permission Required',
-        'Please allow notifications to receive period reminders.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { 
-            text: 'Allow', 
-            onPress: async () => {
-              const granted = await requestPermissions();
-              if (granted) {
-                setIsEnabled(true);
-                await scheduleNextReminder();
-              } else {
-                Alert.alert('Permission Denied', 'You need to allow notifications in settings.');
-              }
-            }
-          }
-        ]
-      );
-      return;
-    }
-
-    setIsEnabled(value);
-    
-    if (value) {
-      await scheduleNextReminder();
-    } else {
-      await cancelReminders();
-      setNextReminderDate(null);
-    }
-  };
+  useEffect(() => {
+    loadNotificationStatus();
+  }, []);
 
   const scheduleNextReminder = async () => {
     setIsLoading(true);
+
     try {
       const lastPeriod = getLastPeriodStart();
       if (!lastPeriod) {
@@ -107,18 +83,30 @@ export const NotificationSettingsScreen: React.FC = () => {
         return;
       }
 
-      const id = await schedulePeriodReminder(lastPeriod.toISOString());
-      if (id) {
-        // Calculate next reminder date
-        const nextDate = new Date(lastPeriod);
-        nextDate.setDate(nextDate.getDate() + selectedDays[0]);
-        setNextReminderDate(nextDate);
-        
-        Alert.alert(
-          'Reminder Set',
-          `You'll be notified on ${format(nextDate, 'MMMM d, yyyy')}`
-        );
+      const reminderDays = selectedDays.length > 0 ? selectedDays : [21, 28];
+      const reminderDates = getMissedPeriodReminderDates(lastPeriod.toISOString(), reminderDays)
+        .filter((date) => date.getTime() > Date.now())
+        .sort((a, b) => a.getTime() - b.getTime());
+
+      const scheduledIds = await scheduleMissedPeriodReminders(
+        lastPeriod.toISOString(),
+        reminderDays
+      );
+
+      if (reminderDates.length > 0 && scheduledIds.length > 0) {
+        setNextReminderDate(reminderDates[0]);
+        const formattedDates = reminderDates.map((date) => format(date, 'MMMM d, yyyy')).join(' and ');
+
+        Alert.alert('Reminder Set', `You'll be notified on ${formattedDates}`);
+        return;
       }
+
+      setIsEnabled(false);
+      setNextReminderDate(null);
+      Alert.alert(
+        'No Upcoming Reminder',
+        'The selected reminder days are already in the past for this cycle.'
+      );
     } catch (error) {
       console.error('Error scheduling reminder:', error);
       Alert.alert('Error', 'Failed to set reminder. Please try again.');
@@ -128,36 +116,55 @@ export const NotificationSettingsScreen: React.FC = () => {
     }
   };
 
-  const handleTestNotification = async () => {
-    if (!hasPermission) {
-      Alert.alert('Permission Required', 'Please enable notifications first.');
+  const handleToggleReminders = async (value: boolean) => {
+    if (value && !hasPermission) {
+      Alert.alert(
+        'Permission Required',
+        'Please allow notifications to receive missed period reminders.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Allow',
+            onPress: async () => {
+              const granted = await requestPermissions();
+              if (granted) {
+                setHasPermission(true);
+                setIsEnabled(true);
+                await scheduleNextReminder();
+              } else {
+                Alert.alert('Permission Denied', 'You need to allow notifications in settings.');
+              }
+            },
+          },
+        ]
+      );
       return;
     }
 
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: 'Test Notification',
-        body: 'This is a test notification from FlowTrack!',
-        sound: true,
-      },
-      trigger: null, // Show immediately
-    });
-    
-    Alert.alert('Test Sent', 'Check your notifications!');
+    setIsEnabled(value);
+
+    if (value) {
+      await scheduleNextReminder();
+      return;
+    }
+
+    await cancelReminders();
+    setNextReminderDate(null);
   };
 
   const getReminderPreview = () => {
     const lastPeriod = getLastPeriodStart();
     if (!lastPeriod) return 'Log a cycle to see preview';
-    
-    const nextDate = new Date(lastPeriod);
-    nextDate.setDate(nextDate.getDate() + selectedDays[0]);
-    const today = new Date();
-    const daysLeft = Math.ceil((nextDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
-    
-    if (daysLeft < 0) return 'Your next period may have started';
-    if (daysLeft === 0) return 'Your period should start today!';
-    return `${daysLeft} days until your predicted period`;
+
+    const reminderDays = selectedDays.length > 0 ? selectedDays : [21, 28];
+    const reminderDates = getMissedPeriodReminderDates(lastPeriod.toISOString(), reminderDays)
+      .filter((date) => date.getTime() > Date.now())
+      .sort((a, b) => a.getTime() - b.getTime());
+
+    if (reminderDates.length === 0) return 'No upcoming reminder dates for this cycle';
+    if (reminderDates.length === 1) return `Next reminder on ${format(reminderDates[0], 'MMMM d, yyyy')}`;
+
+    return `Reminders on ${format(reminderDates[0], 'MMM d')} and ${format(reminderDates[1], 'MMM d')}`;
   };
 
   const styles = StyleSheet.create({
@@ -257,31 +264,6 @@ export const NotificationSettingsScreen: React.FC = () => {
       color: theme.text.white,
       fontWeight: '600',
     },
-    advanceContainer: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: spacing.sm,
-    },
-    advanceButton: {
-      paddingHorizontal: spacing.md,
-      paddingVertical: spacing.sm,
-      borderRadius: borderRadius.md,
-      backgroundColor: theme.background,
-      borderWidth: 1,
-      borderColor: theme.border,
-    },
-    advanceButtonActive: {
-      backgroundColor: theme.secondary,
-      borderColor: theme.secondary,
-    },
-    advanceText: {
-      ...typography.caption,
-      color: theme.text.secondary,
-    },
-    advanceTextActive: {
-      color: theme.text.white,
-      fontWeight: '600',
-    },
     previewBox: {
       marginTop: spacing.sm,
     },
@@ -330,37 +312,6 @@ export const NotificationSettingsScreen: React.FC = () => {
       color: theme.text.primary,
       fontWeight: '500',
     },
-    testButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: spacing.sm,
-      backgroundColor: theme.surface,
-      paddingVertical: spacing.md,
-      borderRadius: borderRadius.md,
-      marginBottom: spacing.lg,
-      borderWidth: 1,
-      borderColor: theme.border,
-    },
-    testButtonText: {
-      ...typography.label,
-      color: theme.primary,
-      fontWeight: '600',
-    },
-    infoSection: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.sm,
-      backgroundColor: theme.surface,
-      padding: spacing.md,
-      borderRadius: borderRadius.md,
-      marginBottom: spacing.lg,
-    },
-    infoText: {
-      ...typography.caption,
-      color: theme.text.light,
-      flex: 1,
-    },
     dangerButton: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -381,12 +332,8 @@ export const NotificationSettingsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={theme.text.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Notifications</Text>
@@ -394,12 +341,11 @@ export const NotificationSettingsScreen: React.FC = () => {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        {/* Main Toggle */}
         <View style={styles.section}>
           <View style={styles.toggleRow}>
             <View style={styles.toggleInfo}>
               <Ionicons name="notifications" size={24} color={theme.primary} />
-              <Text style={styles.toggleLabel}>Period Reminders</Text>
+              <Text style={styles.toggleLabel}>Missed Period Reminders</Text>
             </View>
             <Switch
               value={isEnabled}
@@ -410,11 +356,10 @@ export const NotificationSettingsScreen: React.FC = () => {
             />
           </View>
           <Text style={styles.toggleDescription}>
-            Get notified when your next period is approaching
+            Get notified if your period is still missing after 21 days and 28 days
           </Text>
         </View>
 
-        {/* Reminder Preview */}
         {isEnabled && nextReminderDate && (
           <View style={styles.previewCard}>
             <Ionicons name="calendar" size={20} color={theme.text.white} />
@@ -424,22 +369,30 @@ export const NotificationSettingsScreen: React.FC = () => {
           </View>
         )}
 
-        {/* Cycle Length Settings */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Cycle Settings</Text>
+          <Text style={styles.sectionTitle}>Missed Cycle Settings</Text>
           <Text style={styles.sectionDescription}>
-            Your average cycle length helps us predict accurately
+            We'll notify you if your period is still missing after 21 days and 28 days
           </Text>
-          
+
           <View style={styles.cycleLengthContainer}>
-            {[26, 28, 30, 32, 35].map((days) => (
+            {[21, 28].map((days) => (
               <TouchableOpacity
                 key={days}
                 style={[
                   styles.cycleLengthButton,
                   selectedDays.includes(days) && styles.cycleLengthButtonActive,
                 ]}
-                onPress={() => setSelectedDays([days])}
+                onPress={() =>
+                  setSelectedDays((current) => {
+                    if (current.includes(days)) {
+                      const next = current.filter((value) => value !== days);
+                      return next.length > 0 ? next : [21, 28];
+                    }
+
+                    return [...current, days].sort((a, b) => a - b);
+                  })
+                }
               >
                 <Text
                   style={[
@@ -454,33 +407,6 @@ export const NotificationSettingsScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Advance Notice */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Remind Me</Text>
-          <View style={styles.advanceContainer}>
-            {[0, 1, 2, 3, 5].map((days) => (
-              <TouchableOpacity
-                key={days}
-                style={[
-                  styles.advanceButton,
-                  selectedAdvanceDays === days && styles.advanceButtonActive,
-                ]}
-                onPress={() => setSelectedAdvanceDays(days)}
-              >
-                <Text
-                  style={[
-                    styles.advanceText,
-                    selectedAdvanceDays === days && styles.advanceTextActive,
-                  ]}
-                >
-                  {days === 0 ? 'Same day' : `${days} day${days > 1 ? 's' : ''} before`}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* Preview Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Preview</Text>
           <View style={styles.previewBox}>
@@ -496,22 +422,6 @@ export const NotificationSettingsScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Test Button */}
-        <TouchableOpacity style={styles.testButton} onPress={handleTestNotification}>
-          <Ionicons name="notifications-outline" size={20} color={theme.primary} />
-          <Text style={styles.testButtonText}>Send Test Notification</Text>
-        </TouchableOpacity>
-
-        {/* Info Section */}
-        <View style={styles.infoSection}>
-          <Ionicons name="information-circle" size={20} color={theme.text.light} />
-          <Text style={styles.infoText}>
-            Notifications are stored locally on your device. 
-            We never share your cycle data with any servers.
-          </Text>
-        </View>
-
-        {/* Danger Zone */}
         {isEnabled && (
           <TouchableOpacity
             style={styles.dangerButton}
@@ -521,16 +431,16 @@ export const NotificationSettingsScreen: React.FC = () => {
                 'Are you sure you want to turn off all period reminders?',
                 [
                   { text: 'Cancel', style: 'cancel' },
-                  { 
-                    text: 'Disable', 
+                  {
+                    text: 'Disable',
                     style: 'destructive',
                     onPress: async () => {
                       await cancelReminders();
                       setIsEnabled(false);
                       setNextReminderDate(null);
                       Alert.alert('Reminders Disabled', 'All notifications have been cancelled.');
-                    }
-                  }
+                    },
+                  },
                 ]
               );
             }}

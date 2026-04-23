@@ -36,6 +36,9 @@
           "buildType": "apk"
         }
       }
+    },
+    "notification": {
+      "iosDisplayInForeground": true
     }
   }
 }

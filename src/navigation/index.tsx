@@ -6,9 +6,11 @@ import { TabNavigator } from './TabNavigator';
 import { SplashScreen } from '../screens/Splash/SplashScreen';
 import { useUserStore } from '../store/useUserStore';
 import { useCycleStore } from '../store/useCycleStore';
+import { useNotificationStore } from '../store/useNotificationStore';
 import { auth } from '../services/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { fetchCyclesForUser, fetchLogsForUser, upsertCycleSummaryForUser } from '../services/firebase';
+import * as Notifications from 'expo-notifications';
 
 const Stack = createNativeStackNavigator();
 
@@ -16,6 +18,12 @@ export const AppNavigator = () => {
   const { user, isLoading, setUser, setLoading } = useUserStore();
   const setCycles = useCycleStore((state) => state.setCycles);
   const setLogs = useCycleStore((state) => state.setLogs);
+  const incrementNotificationBadgeCount = useNotificationStore(
+    (state) => state.incrementNotificationBadgeCount
+  );
+  const clearNotificationBadgeCount = useNotificationStore(
+    (state) => state.clearNotificationBadgeCount
+  );
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -34,6 +42,40 @@ export const AppNavigator = () => {
 
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const syncBadgeCount = async () => {
+      try {
+        const badgeCount = await Notifications.getBadgeCountAsync();
+        if (mounted) {
+          await clearNotificationBadgeCount();
+          if (badgeCount > 0) {
+            await useNotificationStore.getState().setNotificationBadgeCount(badgeCount);
+          }
+        }
+      } catch (error) {
+        console.log('Failed to sync notification badge count:', error);
+      }
+    };
+
+    const notificationSubscription = Notifications.addNotificationReceivedListener(async () => {
+      await incrementNotificationBadgeCount();
+    });
+
+    const responseSubscription = Notifications.addNotificationResponseReceivedListener(async () => {
+      await clearNotificationBadgeCount();
+    });
+
+    syncBadgeCount();
+
+    return () => {
+      mounted = false;
+      notificationSubscription.remove();
+      responseSubscription.remove();
+    };
+  }, [clearNotificationBadgeCount, incrementNotificationBadgeCount]);
 
   useEffect(() => {
     let mounted = true;
