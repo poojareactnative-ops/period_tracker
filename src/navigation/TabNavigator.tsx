@@ -1,5 +1,7 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Home, Calendar as CalendarIcon, FilePlus, BarChart2, User } from 'lucide-react-native';
 import { HomeScreen } from '../screens/Home/HomeScreen';
 import { CalendarScreen } from '../screens/Calendar/CalendarScreen';
@@ -13,6 +15,7 @@ const Tab = createBottomTabNavigator();
 
 export const TabNavigator = () => {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tab.Navigator
@@ -28,8 +31,8 @@ export const TabNavigator = () => {
           shadowOffset: { width: 0, height: -2 },
           shadowOpacity: 0.1,
           shadowRadius: 10,
-          height: 70,
-          paddingBottom: 15,
+          height: Platform.OS === 'ios' ? 70 + insets.bottom : 70,
+          paddingBottom: Platform.OS === 'ios' ? insets.bottom : 15,
           paddingTop: 10,
         },
       }}
