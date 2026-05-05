@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { Heart } from 'lucide-react-native';
+import { Heart, Eye, EyeOff } from 'lucide-react-native';
 import { GradientBackground } from '../../components/GradientBackground';
 import { CustomButton } from '../../components/CustomButton';
 import { auth } from '../../services/firebase';
@@ -25,6 +25,7 @@ export const RegisterScreen: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigation = useNavigation<any>();
 
@@ -72,6 +73,9 @@ export const RegisterScreen: React.FC = () => {
       color: theme.text.primary,
       marginBottom: spacing.sm,
     },
+    passwordContainer: {
+      position: 'relative',
+    },
     input: {
       backgroundColor: 'white',
       height: 56,
@@ -80,6 +84,15 @@ export const RegisterScreen: React.FC = () => {
       fontSize: 16,
       borderWidth: 1,
       borderColor: theme.border,
+    },
+    passwordInput: {
+      paddingRight: 48,
+    },
+    eyeIcon: {
+      position: 'absolute',
+      right: 12,
+      top: 16,
+      padding: 4,
     },
     privacyContainer: {
       marginBottom: spacing.xl,
@@ -134,8 +147,8 @@ export const RegisterScreen: React.FC = () => {
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
-        "pooja.reactnative@gmail.com",
-        "password"
+        normalizedEmail,  // ✅ Fixed: Use the user's email instead of hardcoded one
+        password          // ✅ Fixed: Use the user's password
       );
 
       // ✅ Update user name
@@ -219,15 +232,28 @@ export const RegisterScreen: React.FC = () => {
 
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Password</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="********"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  style={[styles.input, styles.passwordInput]}
+                  placeholder="********"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+                <TouchableOpacity
+                  style={styles.eyeIcon}
+                  onPress={() => setShowPassword(!showPassword)}
+                  activeOpacity={0.7}
+                >
+                  {showPassword ? (
+                    <EyeOff color={theme.text.secondary} size={24} />
+                  ) : (
+                    <Eye color={theme.text.secondary} size={24} />
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
 
             <View style={styles.privacyContainer}>
