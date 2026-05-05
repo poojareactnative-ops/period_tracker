@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "period_tracker",
+    "name": "Period Tracker",
     "slug": "period_tracker",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "plugins": [
       [
         "expo-splash-screen",

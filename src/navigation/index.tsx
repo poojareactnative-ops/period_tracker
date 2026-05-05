@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthNavigator } from './AuthNavigator';
 import { TabNavigator } from './TabNavigator';
@@ -11,10 +11,12 @@ import { auth } from '../services/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { fetchCyclesForUser, fetchLogsForUser, upsertCycleSummaryForUser } from '../services/firebase';
 import * as Notifications from 'expo-notifications';
+import { useTheme } from '../theme/ThemeContext';
 
 const Stack = createNativeStackNavigator();
 
 export const AppNavigator = () => {
+  const { theme, isDark } = useTheme();
   const { user, isLoading, setUser, setLoading } = useUserStore();
   const setCycles = useCycleStore((state) => state.setCycles);
   const setLogs = useCycleStore((state) => state.setLogs);
@@ -115,8 +117,21 @@ export const AppNavigator = () => {
     return <SplashScreen />;
   }
 
+  const navigationTheme = {
+    ...(isDark ? DarkTheme : DefaultTheme),
+    colors: {
+      ...(isDark ? DarkTheme.colors : DefaultTheme.colors),
+      primary: theme.primary,
+      background: theme.background,
+      card: theme.surface,
+      text: theme.text.primary,
+      border: theme.border,
+      notification: theme.accent,
+    },
+  };
+
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navigationTheme}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {user ? (
           <Stack.Screen name="Main" component={TabNavigator} />
